@@ -16,7 +16,7 @@ export function force(value: Value, evaluate: Evaluator): Value {
   const thunk = value as ThunkValue;
 
   if (thunk.memoized) {
-    return thunk.memoized;
+    return force(thunk.memoized, evaluate);
   }
 
   const result = evaluate(thunk.expression, thunk.environment);

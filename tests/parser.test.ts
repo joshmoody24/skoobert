@@ -141,6 +141,30 @@ describe("parser - positive tests", () => {
       },
     });
   });
+
+  it("should parse arrow function with parentheses around parameter", () => {
+    const result = parse("let fn = (x) => x + 1;");
+    expect(result.statements[0]?.body).toMatchObject({
+      type: "variable-declaration",
+      expression: {
+        type: "expression",
+        body: {
+          type: "arrow-function",
+          parameter: { type: "identifier", name: "x" },
+        },
+      },
+    });
+  });
+
+  it("should parse ternary operator expression", () => {
+    const result = parse("let result = condition ? value1 : value2;");
+    expect(result).toBeTruthy();
+  });
+
+  it("should parse triple equals comparison", () => {
+    const result = parse("let check = a === b;");
+    expect(result).toBeTruthy();
+  });
 });
 
 describe("parser - negative tests", () => {

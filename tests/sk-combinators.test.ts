@@ -50,32 +50,83 @@ let THREE = SUCC(TWO);
 let FOUR = SUCC(THREE);
 let FIVE = SUCC(FOUR);
 
+let toNumber = n => IS_ZERO(n)(0)(1 + toNumber(PRED(n)));
+
+// Test toNumber with simple cases first
+console.log(toNumber(ZERO)); // Should be 0
+console.log(toNumber(FIVE)); // Should be 5
+
 // Complex recursive function using Y combinator
+// Derivation:
+// Z = IS_ZERO
+// 1 = TWO // memes
+// P = PRED
+// N = SUCC
+// A = ADD_ONE
+// An = Zn1(N(A(Pn)))
+// An = CZ1n(N(A(Pn)))
+// An = CZ1n(N(BAPn))
+// An = CZ1n(BN(BAP)n)
+// An = S(CZ1)(BN(BAP))n
+// Xyn = S(CZ1)(BN(ByP))n
+// Xyn = S(CZ1)(BN(CBPy))n
+// Xyn = S(CZ1)(B(BN)(CBP)y)n
+// Xyn = B(S(CZ1))(B(BN)(CBP))yn
+// Fixed point shenanigans after that
 let ADD_TWO_X = B(S(C(IS_ZERO)(TWO)))(B(B(SUCC))(C(B)(PRED)));
 let ADD_TWO = Y(ADD_TWO_X);
+
+console.log(toNumber(ADD_TWO(FIVE)));
+
+// Another derivation:
+// Starting from ADD_TWO_X above, but generalizing TWO to a variable m
+// Xynm = B(S(CZm))(B(BN)(CBP))yn
+// Xynm = B(BS(CZ)m)(B(BN)(CBP))yn
+// Xynm = BB(BS(CZ))m(B(BN)(CBP))yn
+// Xynm = T(B(BN)(CBP))(BB(BS(CZ))m)yn
+// P1 = T(B(BN)(CBP))
+// P2 = BB(BS(CZ))
+// Xynm = 'P1'('P2'm)yn
+// Xynm = B'P1''P2'myn
+// P3 = B'P1''P2'
+// Xynm = 'P3'myn
+// ???
+let P1 = T(B(B(SUCC))(C(B)(PRED)));
+let P2 = B(B)(B(S)(C(IS_ZERO)));
+let P3 = B(P1)(P2);
+let ADD_X = C(P3);
+
+// let ADD = Y(ADD_X);
+let ADD = (m) => Y(P3(m));
+console.log(toNumber(ADD(FIVE)(FOUR)));
 
 console.log("test completed");
 `;
 
-    interpret(parse(program), { onOutput: mockOutput });
+    try {
+      interpret(parse(program), { onOutput: mockOutput });
+    } catch (error) {
+      if (error instanceof Error && error.name === "ParseError") {
+        console.error(error.toString());
+      }
+      throw error;
+    }
 
-    // Should have produced outputs without infinite loops
-    expect(mockOutput).toHaveBeenCalledWith({
-      type: ValueType.Number,
-      value: 42,
-    });
+    // Should have called output exactly 6 times
+    expect(mockOutput).toHaveBeenCalledTimes(7);
 
-    expect(mockOutput).toHaveBeenCalledWith({
-      type: ValueType.String,
-      value: "ok",
-    });
+    // Check each call individually for better debugging
+    const calls = mockOutput.mock.calls;
 
-    expect(mockOutput).toHaveBeenCalledWith({
+    expect(calls[0][0]).toEqual({ type: ValueType.Number, value: 42 });
+    expect(calls[1][0]).toEqual({ type: ValueType.String, value: "ok" });
+    expect(calls[2][0]).toEqual({ type: ValueType.Number, value: 0 });
+    expect(calls[3][0]).toEqual({ type: ValueType.Number, value: 5 });
+    expect(calls[4][0]).toEqual({ type: ValueType.Number, value: 7 });
+    expect(calls[5][0]).toEqual({ type: ValueType.Number, value: 9 });
+    expect(calls[6][0]).toEqual({
       type: ValueType.String,
       value: "test completed",
     });
-
-    // Should have called output exactly 3 times
-    expect(mockOutput).toHaveBeenCalledTimes(3);
   });
 });

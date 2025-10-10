@@ -15,7 +15,6 @@ import {
   type LogicalOrExpression,
   type MultiplicativeExpression,
   type NumberLiteral,
-  type ParenthesizedExpression,
   type PrimaryExpression,
   type Program,
   type RelationalExpression,
@@ -25,7 +24,12 @@ import {
   type UnaryExpression,
   type VariableDeclaration,
 } from "../types/ast.js";
-import { TokenType, type Token } from "../types/tokens.js";
+import {
+  TokenType,
+  type BaseToken,
+  type IdentifierToken,
+  type Token,
+} from "../types/tokens.js";
 
 export function createParser(tokens: Token[], source: string) {
   let current = 0;
@@ -77,6 +81,22 @@ export function createParser(tokens: Token[], source: string) {
         type: NodeType.Statement,
         body: variableDeclaration(),
       };
+    }
+
+    // Check if this looks like a reassignment attempt
+    if (peek()?.type === TokenType.Identifier) {
+      // Look ahead to see if next token is assignment
+      if (peek()?.type === TokenType.Assignment) {
+        const identifierToken = tokens[current] as IdentifierToken & BaseToken;
+        throw createError(
+          `Tried to reassign variable '${identifierToken?.value}'. Variable reassignment is not allowed (unlike JavaScript). Use 'let' to declare a new variable.`,
+          identifierToken
+        );
+      }
+      throw createError(
+        `Unexpected identifier '${(peek() as IdentifierToken)?.value}'. Did you mean to declare a new variable with 'let'?`,
+        peek()
+      );
     }
 
     return {
@@ -412,7 +432,35 @@ export function createParser(tokens: Token[], source: string) {
     return identifier;
   };
 
-  const parseParenthesizedExpression = (): ParenthesizedExpression => {
+  const parseParenthesizedExpression = (): PrimaryExpression => {
+    // Check if this is a parenthesized arrow function parameter like (x) =>
+    // Peek ahead to see if we have (identifier) => pattern
+    if (peek()?.type === TokenType.Identifier) {
+      // Look ahead to check if this is (identifier) =>
+      const savedCurrent = current;
+      const identifierToken = consume() as IdentifierToken;
+      const hasRightParen = peek()?.type === TokenType.RightParen;
+      if (hasRightParen) {
+        consume(); // consume ')'
+        const hasArrow = peek()?.type === TokenType.Arrow;
+        current = savedCurrent; // Reset to start of pattern
+
+        if (hasArrow) {
+          // This is (identifier) => pattern
+          consume(); // consume identifier
+          consume(); // consume ')'
+          const identifier: Identifier = {
+            type: NodeType.Identifier,
+            name: identifierToken?.value as string,
+          };
+          return parseArrowFunction(identifier);
+        }
+      } else {
+        current = savedCurrent; // Reset if not the pattern we want
+      }
+    }
+
+    // Parse as normal parenthesized expression
     const expr = expression();
     if (!match(TokenType.RightParen)) {
       throw createError("Expected ')' after expression");

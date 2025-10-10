@@ -57,6 +57,67 @@ describe("interpreter - basic evaluation", () => {
   });
 });
 
+describe("interpreter - variable assignment rules", () => {
+  it("should not allow variable reassignment", () => {
+    const program = `
+      let x = 5;
+      x = 10;
+      console.log(x);
+    `;
+
+    expect(() => parse(program)).toThrow();
+  });
+
+  it("should not allow reassignment even with different value types", () => {
+    const program = `
+      let x = 5;
+      x = "hello";
+      console.log(x);
+    `;
+
+    expect(() => parse(program)).toThrow();
+  });
+
+  it("should not allow redeclaration of the same variable with let", () => {
+    const program = `
+      let x = 5;
+      let x = 10;
+      console.log(x);
+    `;
+
+    // This should fail - can't redeclare x
+    expect(() => interpret(parse(program), {})).toThrow();
+  });
+
+  it("should allow multiple lets with different variable names", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    const program = `
+      let x = 5;
+      let y = 10;
+      console.log(x + y);
+    `;
+
+    interpret(parse(program), { onOutput: mockOutput });
+
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 15,
+    });
+  });
+
+  it("should not allow redeclaration even in different positions", () => {
+    const program = `
+      let x = 5;
+      let f = y => x + y;
+      let x = 10;
+      console.log(f(1));
+    `;
+
+    // This should fail - can't redeclare x even after using it in a function
+    expect(() => interpret(parse(program), {})).toThrow();
+  });
+});
+
 describe("interpreter - lazy evaluation", () => {
   it("should not evaluate unused variables", () => {
     const mockOutput = vi.fn<[Value], void>();

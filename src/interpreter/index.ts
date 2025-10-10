@@ -10,6 +10,7 @@ import {
   type Environment,
   createEnvironment,
   bindVariable,
+  lookupVariable,
   createThunk,
 } from "./values.js";
 import { force } from "./force.js";
@@ -51,6 +52,12 @@ function evaluateStatement(
   switch (statement.body.type) {
     case NodeType.VariableDeclaration: {
       const { identifier, expression } = statement.body;
+      // Check if variable already exists in any scope
+      if (lookupVariable(env, identifier.name) !== undefined) {
+        throw new Error(
+          `Cannot use 'let ${identifier.name}' - the name '${identifier.name}' is already taken. Each name can only be defined once.`
+        );
+      }
       const thunk = createThunk(expression, env);
       bindVariable(env, identifier.name, thunk);
       break;

@@ -247,7 +247,9 @@ function evaluatePrimary(expr: PrimaryExpression, env: Environment): Value {
     case NodeType.FunctionCall: {
       const func = force(evaluate(expr.callee, env), evaluate);
       if (func.type !== ValueType.Function) {
-        throw new Error("Cannot call non-function");
+        throw new Error(
+          `Cannot call non-function: attempted to call a ${func.type} value`
+        );
       }
 
       const argThunk = createThunk(expr.argument, env);
