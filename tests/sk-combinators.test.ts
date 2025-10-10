@@ -96,8 +96,8 @@ let P2 = B(B)(B(S)(C(IS_ZERO)));
 let P3 = B(P1)(P2);
 let ADD_X = R_STAR(P3);
 
-let ADD = Y(ADD_X);
-// let ADD = (m) => Y(P3(m));
+// let ADD = Y(ADD_X);
+let ADD = (m) => Y(P3(m));
 console.log(toNumber(ADD(FIVE)(FOUR)));
 
 console.log("test completed");
