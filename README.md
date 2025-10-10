@@ -4,18 +4,12 @@ A **lazy subset of JavaScript** - expressions are only evaluated when their valu
 
 ## Features
 
+- **JavaScript subset** with familiar syntax
 - **Lazy evaluation** with automatic memoization
-- **Variable declarations** with `let`
-- **Arrow functions** (`x => x + 1`)
-- **Arithmetic** and **logical operators**
-- **Console output** with injectable handlers
 
-## Quick Start
+## Installation
 
-```bash
-npm install
-npm test
-```
+(TODO: Publish to npm)
 
 ## Usage
 
@@ -40,9 +34,6 @@ let x = 1 / 0;
 let y = 42;
 console.log(y); // ✅ Outputs: 42
 
-// Short-circuiting - second expression never evaluated
-console.log(true || 1 / 0); // ✅ Outputs: true
-
 // Functions receive lazy arguments
 let f = (x) => 42;
 console.log(f(1 / 0)); // ✅ Outputs: 42 (argument never evaluated)
@@ -63,6 +54,7 @@ let result = 2 + 3 * 4; // 14
 let check = 5 > 3 && 2 < 4; // true
 
 // Arrow functions
+// (Must take exactly one argument)
 let double = (x) => x * 2;
 let add = (x) => (y) => x + y;
 
