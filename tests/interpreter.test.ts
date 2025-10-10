@@ -40,6 +40,42 @@ describe("interpreter - basic evaluation", () => {
     });
   });
 
+  it("should evaluate floating point literal", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse("console.log(3.14159);"), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 3.14159,
+    });
+  });
+
+  it("should handle floating point addition", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse("console.log(1.5 + 2.5);"), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 4.0,
+    });
+  });
+
+  it("should handle floating point multiplication", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse("console.log(2.5 * 4);"), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 10.0,
+    });
+  });
+
+  it("should handle mixed integer and floating point operations", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse("console.log(0.5 * 10 + 3);"), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 8.0,
+    });
+  });
+
   it("should evaluate boolean expressions", () => {
     const mockOutput = vi.fn<[Value], void>();
     interpret(parse("console.log(5 > 3 && 2 < 4);"), { onOutput: mockOutput });

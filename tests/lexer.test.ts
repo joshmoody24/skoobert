@@ -89,6 +89,35 @@ describe("lexer - positive tests", () => {
     const numberToken = tokens[0] as { type: string; value: number };
     expect(numberToken.value).toBe(3.14);
   });
+
+  it("should lex floating point with many decimals", () => {
+    const tokens = lex("3.14159");
+    expect(tokens[0]?.type).toBe(TokenType.Number);
+    const numberToken = tokens[0] as { type: string; value: number };
+    expect(numberToken.value).toBe(3.14159);
+  });
+
+  it("should lex floating point in arithmetic expression", () => {
+    const tokens = lex("1.5 + 2.5");
+    const tokenTypes = tokens.map((token) => token.type);
+    expect(tokenTypes).toEqual([
+      TokenType.Number,
+      TokenType.Plus,
+      TokenType.Number,
+      TokenType.Eof,
+    ]);
+    const num1 = tokens[0] as { type: string; value: number };
+    const num2 = tokens[2] as { type: string; value: number };
+    expect(num1.value).toBe(1.5);
+    expect(num2.value).toBe(2.5);
+  });
+
+  it("should lex floating point starting with zero", () => {
+    const tokens = lex("0.5");
+    expect(tokens[0]?.type).toBe(TokenType.Number);
+    const numberToken = tokens[0] as { type: string; value: number };
+    expect(numberToken.value).toBe(0.5);
+  });
 });
 
 describe("lexer - negative tests", () => {

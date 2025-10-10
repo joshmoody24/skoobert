@@ -119,6 +119,50 @@ describe("parser - positive tests", () => {
     });
   });
 
+  it("should parse floating point arithmetic expression", () => {
+    const result = parse("let x = 1.5 + 2.5;");
+    expect(result.statements[0]?.body).toMatchObject({
+      type: "variable-declaration",
+      expression: {
+        type: "expression",
+        body: {
+          type: "additive",
+          operator: "+",
+          left: {
+            type: "literal",
+            body: { type: "number", value: 1.5 },
+          },
+          right: {
+            type: "literal",
+            body: { type: "number", value: 2.5 },
+          },
+        },
+      },
+    });
+  });
+
+  it("should parse floating point multiplication", () => {
+    const result = parse("let x = 0.5 * 10;");
+    expect(result.statements[0]?.body).toMatchObject({
+      type: "variable-declaration",
+      expression: {
+        type: "expression",
+        body: {
+          type: "multiplicative",
+          operator: "*",
+          left: {
+            type: "literal",
+            body: { type: "number", value: 0.5 },
+          },
+          right: {
+            type: "literal",
+            body: { type: "number", value: 10 },
+          },
+        },
+      },
+    });
+  });
+
   it("should parse console.log statement with complex expression", () => {
     const result = parse("console.log(5 > 3 && 2 < 4);");
     expect(result.statements[0]?.body).toMatchObject({
