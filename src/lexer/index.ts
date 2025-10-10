@@ -143,7 +143,6 @@ function createLexer(input: string) {
         return true;
       }
 
-
       return false;
     },
 
@@ -197,7 +196,7 @@ function createLexer(input: string) {
       while (peek() && peek() !== '"') {
         if (peek() === "\n") {
           throw new TypeError(
-            `Unterminated string literal at ${startLine}:${startColumn}`,
+            `Unterminated string literal at ${startLine}:${startColumn}`
           );
         }
 
@@ -226,7 +225,7 @@ function createLexer(input: string) {
 
       if (peek() !== '"') {
         throw new TypeError(
-          `Unterminated string literal at ${startLine}:${startColumn}`,
+          `Unterminated string literal at ${startLine}:${startColumn}`
         );
       }
 
@@ -256,7 +255,7 @@ function createLexer(input: string) {
       // If nothing matched, we have an unexpected character
       const char = peek();
       throw new TypeError(
-        `Unexpected character '${char}' at ${errorLine}:${errorColumn}`,
+        `Unexpected character '${char}' at ${errorLine}:${errorColumn}`
       );
     }
 
@@ -275,4 +274,3 @@ export function lex(input: string): Token[] {
   const lexer = createLexer(input);
   return lexer.tokenize();
 }
-

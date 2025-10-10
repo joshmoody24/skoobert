@@ -1,25 +1,50 @@
-export type Program = { type: "program"; statements: Statement[] };
+export enum NodeType {
+  Program = "program",
+  Statement = "statement",
+  VariableDeclaration = "variable-declaration",
+  Expression = "expression",
+  Conditional = "conditional",
+  LogicalOr = "logical-or",
+  LogicalAnd = "logical-and",
+  Equality = "equality",
+  Relational = "relational",
+  Additive = "additive",
+  Multiplicative = "multiplicative",
+  Unary = "unary",
+  Literal = "literal",
+  Identifier = "identifier",
+  ParenthesizedExpression = "parenthesized-expression",
+  ArrowFunction = "arrow-function",
+  FunctionCall = "function-call",
+  SideEffect = "side-effect",
+  ConsoleLog = "console-log",
+  Number = "number",
+  String = "string",
+  Boolean = "boolean",
+}
+
+export type Program = { type: NodeType.Program; statements: Statement[] };
 
 export type Statement = {
-  type: "statement";
+  type: NodeType.Statement;
   body: VariableDeclaration | SideEffect;
 };
 
 export type VariableDeclaration = {
-  type: "variable-declaration";
+  type: NodeType.VariableDeclaration;
   identifier: Identifier;
   expression: Expression;
 };
 
 export type Expression = {
-  type: "expression";
+  type: NodeType.Expression;
   body: ConditionalExpression;
 };
 
 export type ConditionalExpression =
   | LogicalOrExpression
   | {
-      type: "conditional";
+      type: NodeType.Conditional;
       condition: LogicalOrExpression;
       valueIfTrue: Expression;
       valueIfFalse: Expression;
@@ -28,7 +53,7 @@ export type ConditionalExpression =
 export type LogicalOrExpression =
   | LogicalAndExpression
   | {
-      type: "logical-or";
+      type: NodeType.LogicalOr;
       left: LogicalOrExpression;
       right: LogicalAndExpression;
     };
@@ -36,7 +61,7 @@ export type LogicalOrExpression =
 export type LogicalAndExpression =
   | EqualityExpression
   | {
-      type: "logical-and";
+      type: NodeType.LogicalAnd;
       left: LogicalAndExpression;
       right: EqualityExpression;
     };
@@ -44,7 +69,7 @@ export type LogicalAndExpression =
 export type EqualityExpression =
   | RelationalExpression
   | {
-      type: "equality";
+      type: NodeType.Equality;
       operator: "===" | "!==";
       left: EqualityExpression;
       right: RelationalExpression;
@@ -53,7 +78,7 @@ export type EqualityExpression =
 export type RelationalExpression =
   | AdditiveExpression
   | {
-      type: "relational";
+      type: NodeType.Relational;
       operator: "<" | "<=" | ">" | ">=";
       left: RelationalExpression;
       right: AdditiveExpression;
@@ -62,7 +87,7 @@ export type RelationalExpression =
 export type AdditiveExpression =
   | MultiplicativeExpression
   | {
-      type: "additive";
+      type: NodeType.Additive;
       operator: "+" | "-";
       left: AdditiveExpression;
       right: MultiplicativeExpression;
@@ -71,7 +96,7 @@ export type AdditiveExpression =
 export type MultiplicativeExpression =
   | UnaryExpression
   | {
-      type: "multiplicative";
+      type: NodeType.Multiplicative;
       operator: "*" | "/" | "%";
       left: MultiplicativeExpression;
       right: UnaryExpression;
@@ -80,7 +105,7 @@ export type MultiplicativeExpression =
 export type UnaryExpression =
   | PrimaryExpression
   | {
-      type: "unary";
+      type: NodeType.Unary;
       operator: "!" | "-";
       operand: UnaryExpression;
     };
@@ -93,38 +118,38 @@ export type PrimaryExpression =
   | FunctionCall;
 
 export type ParenthesizedExpression = {
-  type: "parenthesized-expression";
+  type: NodeType.ParenthesizedExpression;
   expression: Expression;
 };
 
 export type ArrowFunction = {
-  type: "arrow-function";
+  type: NodeType.ArrowFunction;
   parameter: Identifier;
   body: Expression;
 };
 
 export type FunctionCall = {
-  type: "function-call";
+  type: NodeType.FunctionCall;
   callee: Expression;
   argument: Expression;
 };
 
 export type Literal = {
-  type: "literal";
+  type: NodeType.Literal;
   body: NumberLiteral | StringLiteral | BooleanLiteral;
 };
 
-export type NumberLiteral = { type: "number"; value: number };
+export type NumberLiteral = { type: NodeType.Number; value: number };
 
-export type StringLiteral = { type: "string"; value: string };
+export type StringLiteral = { type: NodeType.String; value: string };
 
-export type BooleanLiteral = { type: "boolean"; value: boolean };
+export type BooleanLiteral = { type: NodeType.Boolean; value: boolean };
 
 export type Identifier = {
-  type: "identifier";
+  type: NodeType.Identifier;
   name: string;
 };
 
-export type SideEffect = { type: "side-effect"; body: ConsoleLog };
+export type SideEffect = { type: NodeType.SideEffect; body: ConsoleLog };
 
-export type ConsoleLog = { type: "console-log"; argument: Expression };
+export type ConsoleLog = { type: NodeType.ConsoleLog; argument: Expression };

@@ -100,14 +100,14 @@ describe("lexer - negative tests", () => {
   it("should not confuse let with letter", () => {
     const tokens = lex("letter");
     expect(tokens[0]?.type).toBe(TokenType.Identifier);
-    const identifierToken = tokens[0] as any;
+    const identifierToken = tokens[0] as { type: string; value: string };
     expect(identifierToken.value).toBe("letter");
   });
 
   it("should not confuse console with console.log", () => {
     const tokens = lex("console");
     expect(tokens[0]?.type).toBe(TokenType.Identifier);
-    const identifierToken = tokens[0] as any;
+    const identifierToken = tokens[0] as { type: string; value: string };
     expect(identifierToken.value).toBe("console");
   });
 
@@ -115,4 +115,3 @@ describe("lexer - negative tests", () => {
     expect(() => lex('"hello')).toThrow("Unterminated string");
   });
 });
-

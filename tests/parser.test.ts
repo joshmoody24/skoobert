@@ -164,4 +164,3 @@ describe("parser - negative tests", () => {
     expect(() => parse("let f = x => ;")).toThrow("Unexpected token: ;");
   });
 });
-

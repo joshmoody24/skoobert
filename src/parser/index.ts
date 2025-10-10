@@ -1,28 +1,29 @@
 import { lex } from "../lexer/index.js";
-import type {
-  AdditiveExpression,
-  ArrowFunction,
-  BooleanLiteral,
-  ConditionalExpression,
-  ConsoleLog,
-  EqualityExpression,
-  Expression,
-  FunctionCall,
-  Identifier,
-  Literal,
-  LogicalAndExpression,
-  LogicalOrExpression,
-  MultiplicativeExpression,
-  NumberLiteral,
-  ParenthesizedExpression,
-  PrimaryExpression,
-  Program,
-  RelationalExpression,
-  SideEffect,
-  Statement,
-  StringLiteral,
-  UnaryExpression,
-  VariableDeclaration,
+import {
+  NodeType,
+  type AdditiveExpression,
+  type ArrowFunction,
+  type BooleanLiteral,
+  type ConditionalExpression,
+  type ConsoleLog,
+  type EqualityExpression,
+  type Expression,
+  type FunctionCall,
+  type Identifier,
+  type Literal,
+  type LogicalAndExpression,
+  type LogicalOrExpression,
+  type MultiplicativeExpression,
+  type NumberLiteral,
+  type ParenthesizedExpression,
+  type PrimaryExpression,
+  type Program,
+  type RelationalExpression,
+  type SideEffect,
+  type Statement,
+  type StringLiteral,
+  type UnaryExpression,
+  type VariableDeclaration,
 } from "../types/ast.js";
 import { TokenType, type Token } from "../types/tokens.js";
 
@@ -57,21 +58,21 @@ export function createParser(tokens: Token[]) {
       statements.push(statement());
     }
     return {
-      type: "program",
+      type: NodeType.Program,
       statements,
-    } as Program;
+    };
   };
 
   const statement = (): Statement => {
     if (match(TokenType.Let)) {
       return {
-        type: "statement",
+        type: NodeType.Statement,
         body: variableDeclaration(),
       };
     }
 
     return {
-      type: "statement",
+      type: NodeType.Statement,
       body: sideEffect(),
     };
   };
@@ -89,9 +90,9 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected ';'");
     }
     return {
-      type: "variable-declaration",
+      type: NodeType.VariableDeclaration,
       identifier: {
-        type: "identifier",
+        type: NodeType.Identifier,
         name: identifierToken.value,
       },
       expression: expressionNode,
@@ -100,7 +101,7 @@ export function createParser(tokens: Token[]) {
 
   const expression = (): Expression => {
     return {
-      type: "expression",
+      type: NodeType.Expression,
       body: conditionalExpression(),
     };
   };
@@ -115,7 +116,7 @@ export function createParser(tokens: Token[]) {
       }
       const valueIfFalse = expression();
       return {
-        type: "conditional",
+        type: NodeType.Conditional,
         condition: expr,
         valueIfTrue,
         valueIfFalse,
@@ -131,7 +132,7 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected ';'");
     }
     return {
-      type: "side-effect",
+      type: NodeType.SideEffect,
       body,
     };
   };
@@ -148,7 +149,7 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected ')'");
     }
     return {
-      type: "console-log",
+      type: NodeType.ConsoleLog,
       argument,
     };
   };
@@ -160,7 +161,7 @@ export function createParser(tokens: Token[]) {
       consume();
       const right = logicalAndExpression();
       left = {
-        type: "logical-or",
+        type: NodeType.LogicalOr,
         left,
         right,
       };
@@ -176,7 +177,7 @@ export function createParser(tokens: Token[]) {
       consume();
       const right = equalityExpression();
       left = {
-        type: "logical-and",
+        type: NodeType.LogicalAnd,
         left,
         right,
       };
@@ -195,7 +196,7 @@ export function createParser(tokens: Token[]) {
       const operator = consume().type === TokenType.StrictEqual ? "===" : "!==";
       const right = relationalExpression();
       left = {
-        type: "equality",
+        type: NodeType.Equality,
         operator,
         left,
         right,
@@ -225,7 +226,7 @@ export function createParser(tokens: Token[]) {
               : ">=";
       const right = additiveExpression();
       left = {
-        type: "relational",
+        type: NodeType.Relational,
         operator,
         left,
         right,
@@ -245,7 +246,7 @@ export function createParser(tokens: Token[]) {
       const operator = consume().type === TokenType.Plus ? "+" : "-";
       const right = multiplicativeExpression();
       left = {
-        type: "additive",
+        type: NodeType.Additive,
         operator,
         left,
         right,
@@ -272,7 +273,7 @@ export function createParser(tokens: Token[]) {
             : "%";
       const right = unaryExpression();
       left = {
-        type: "multiplicative",
+        type: NodeType.Multiplicative,
         operator,
         left,
         right,
@@ -287,7 +288,7 @@ export function createParser(tokens: Token[]) {
       const operator = consume().type === TokenType.Not ? "!" : "-";
       const operand = unaryExpression();
       return {
-        type: "unary",
+        type: NodeType.Unary,
         operator,
         operand,
       };
@@ -302,7 +303,7 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected number");
     }
     return {
-      type: "number",
+      type: NodeType.Number,
       value: token.value,
     };
   };
@@ -313,7 +314,7 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected string");
     }
     return {
-      type: "string",
+      type: NodeType.String,
       value: token.value,
     };
   };
@@ -321,7 +322,7 @@ export function createParser(tokens: Token[]) {
   const parseBoolean = (): BooleanLiteral => {
     const token = consume();
     return {
-      type: "boolean",
+      type: NodeType.Boolean,
       value: token.type === TokenType.True,
     };
   };
@@ -329,21 +330,21 @@ export function createParser(tokens: Token[]) {
   const parseLiteral = (): Literal => {
     if (peek()?.type === TokenType.Number) {
       return {
-        type: "literal",
+        type: NodeType.Literal,
         body: parseNumber(),
       };
     }
 
     if (peek()?.type === TokenType.String) {
       return {
-        type: "literal",
+        type: NodeType.Literal,
         body: parseString(),
       };
     }
 
     if (peek()?.type === TokenType.True || peek()?.type === TokenType.False) {
       return {
-        type: "literal",
+        type: NodeType.Literal,
         body: parseBoolean(),
       };
     }
@@ -355,7 +356,7 @@ export function createParser(tokens: Token[]) {
     consume(); // consume '=>'
     const body = expression();
     return {
-      type: "arrow-function",
+      type: NodeType.ArrowFunction,
       parameter,
       body,
     };
@@ -368,9 +369,9 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected ')' after function call argument");
     }
     return {
-      type: "function-call",
+      type: NodeType.FunctionCall,
       callee: {
-        type: "expression",
+        type: NodeType.Expression,
         body: callee as PrimaryExpression,
       },
       argument,
@@ -384,7 +385,7 @@ export function createParser(tokens: Token[]) {
     }
 
     const identifier: Identifier = {
-      type: "identifier",
+      type: NodeType.Identifier,
       name: identifierToken.value as string,
     };
 
@@ -405,7 +406,7 @@ export function createParser(tokens: Token[]) {
       throw new Error("Expected ')' after expression");
     }
     return {
-      type: "parenthesized-expression",
+      type: NodeType.ParenthesizedExpression,
       expression: expr,
     };
   };
