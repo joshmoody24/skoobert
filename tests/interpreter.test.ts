@@ -130,4 +130,48 @@ describe("interpreter - lazy evaluation", () => {
       value: 42,
     });
   });
+
+  it("should handle chained function calls", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(
+      parse(`
+      let add = x => y => x + y;
+      let addFive = add(5);
+      console.log(addFive(3));
+    `),
+      { onOutput: mockOutput }
+    );
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 8,
+    });
+  });
+
+  it("should handle IIFEs (Immediately Invoked Function Expressions)", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(
+      parse(`
+      console.log((x => x * 2)(21));
+    `),
+      { onOutput: mockOutput }
+    );
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 42,
+    });
+  });
+
+  it("should handle complex nested IIFEs", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(
+      parse(`
+      console.log(((x => y => x + y)(10))(32));
+    `),
+      { onOutput: mockOutput }
+    );
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 42,
+    });
+  });
 });

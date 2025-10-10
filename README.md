@@ -20,15 +20,15 @@ npm test
 ## Usage
 
 ```typescript
-import { parse, interpret } from 'skoobert';
+import { parse, interpret } from "skoobert";
 
 // Basic usage with default console output
-const ast = parse('let x = 42; console.log(x);');
+const ast = parse("let x = 42; console.log(x);");
 interpret(ast);
 
 // Custom output handler
 interpret(ast, {
-  onOutput: (value) => console.log('Custom:', value)
+  onOutput: (value) => console.log("Custom:", value),
 });
 ```
 
@@ -44,7 +44,7 @@ console.log(y); // ✅ Outputs: 42
 console.log(true || 1 / 0); // ✅ Outputs: true
 
 // Functions receive lazy arguments
-let f = x => 42;
+let f = (x) => 42;
 console.log(f(1 / 0)); // ✅ Outputs: 42 (argument never evaluated)
 ```
 
@@ -63,8 +63,8 @@ let result = 2 + 3 * 4; // 14
 let check = 5 > 3 && 2 < 4; // true
 
 // Arrow functions
-let double = x => x * 2;
-let add = x => y => x + y;
+let double = (x) => x * 2;
+let add = (x) => (y) => x + y;
 
 // Console output
 console.log(result);

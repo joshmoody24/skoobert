@@ -49,6 +49,7 @@ npx vitest tests/interpreter.test.ts
 ## Testing Architecture
 
 Tests use Vitest with the following pattern:
+
 - **Lexer tests**: Verify token generation and error handling for malformed input
 - **Parser tests**: Check AST generation with both positive and negative cases
 - **Interpreter tests**: Use mock `OutputHandler` functions to capture console.log output and verify lazy evaluation behavior

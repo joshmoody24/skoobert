@@ -3,6 +3,7 @@ import {
   TokenType,
   type DiscriminatedToken,
 } from "../types/tokens.js";
+import { LexError } from "../utils/error-reporter.js";
 
 interface LexerState {
   input: string;
@@ -195,8 +196,10 @@ function createLexer(input: string) {
 
       while (peek() && peek() !== '"') {
         if (peek() === "\n") {
-          throw new TypeError(
-            `Unterminated string literal at ${startLine}:${startColumn}`
+          throw new LexError(
+            "Unterminated string literal",
+            { line: startLine, column: startColumn },
+            input
           );
         }
 
@@ -224,8 +227,10 @@ function createLexer(input: string) {
       }
 
       if (peek() !== '"') {
-        throw new TypeError(
-          `Unterminated string literal at ${startLine}:${startColumn}`
+        throw new LexError(
+          "Unterminated string literal",
+          { line: startLine, column: startColumn },
+          input
         );
       }
 
@@ -233,12 +238,28 @@ function createLexer(input: string) {
       pushToken({ type: TokenType.String, value });
       return true;
     },
+
+    comment: () => {
+      if (peek() !== "/" || peek(1) !== "/") return false;
+
+      // Skip the //
+      advance();
+      advance();
+
+      // Skip until end of line
+      while (peek() && peek() !== "\n") {
+        advance();
+      }
+
+      return true;
+    },
   };
 
   const tokenize = (): Token[] => {
     while (!isAtEnd()) {
-      // Skip whitespace
+      // Skip whitespace and comments
       if (scanners.whitespace()) continue;
+      if (scanners.comment()) continue;
 
       // Save position for error reporting
       const errorLine = state.line;
@@ -254,8 +275,10 @@ function createLexer(input: string) {
 
       // If nothing matched, we have an unexpected character
       const char = peek();
-      throw new TypeError(
-        `Unexpected character '${char}' at ${errorLine}:${errorColumn}`
+      throw new LexError(
+        `Unexpected character '${char}'`,
+        { line: errorLine, column: errorColumn },
+        input
       );
     }
 

@@ -1,4 +1,5 @@
 import { lex } from "../lexer/index.js";
+import { ParseError } from "../utils/error-reporter.js";
 import {
   NodeType,
   type AdditiveExpression,
@@ -8,7 +9,6 @@ import {
   type ConsoleLog,
   type EqualityExpression,
   type Expression,
-  type FunctionCall,
   type Identifier,
   type Literal,
   type LogicalAndExpression,
@@ -27,8 +27,16 @@ import {
 } from "../types/ast.js";
 import { TokenType, type Token } from "../types/tokens.js";
 
-export function createParser(tokens: Token[]) {
+export function createParser(tokens: Token[], source: string) {
   let current = 0;
+
+  const createError = (message: string, token?: Token): ParseError => {
+    const currentToken = token || tokens[current] || tokens[tokens.length - 1];
+    const location = currentToken
+      ? { line: currentToken.line, column: currentToken.column }
+      : { line: 1, column: 1 };
+    return new ParseError(message, location, source);
+  };
 
   const isEof = () => {
     return current >= tokens.length || peek()?.type === TokenType.Eof;
@@ -80,14 +88,14 @@ export function createParser(tokens: Token[]) {
   const variableDeclaration = (): VariableDeclaration => {
     const identifierToken = consume();
     if (identifierToken?.type !== "identifier") {
-      throw new Error("Expected identifier");
+      throw createError("Expected identifier");
     }
     if (!match(TokenType.Assignment)) {
-      throw new Error("Expected '='");
+      throw createError("Expected '='");
     }
     const expressionNode = expression();
     if (!match(TokenType.Semicolon)) {
-      throw new Error("Expected ';'");
+      throw createError("Expected ';'");
     }
     return {
       type: NodeType.VariableDeclaration,
@@ -112,7 +120,7 @@ export function createParser(tokens: Token[]) {
     if (match(TokenType.Question)) {
       const valueIfTrue = expression();
       if (!match(TokenType.Colon)) {
-        throw new Error("Expected ':' in conditional expression");
+        throw createError("Expected ':' in conditional expression");
       }
       const valueIfFalse = expression();
       return {
@@ -129,7 +137,7 @@ export function createParser(tokens: Token[]) {
   const sideEffect = (): SideEffect => {
     const body = consoleLog();
     if (!match(TokenType.Semicolon)) {
-      throw new Error("Expected ';'");
+      throw createError("Expected ';'");
     }
     return {
       type: NodeType.SideEffect,
@@ -139,14 +147,14 @@ export function createParser(tokens: Token[]) {
 
   const consoleLog = (): ConsoleLog => {
     if (!match(TokenType.ConsoleLog)) {
-      throw new Error("Expected 'console.log'");
+      throw createError("Expected 'console.log'");
     }
     if (!match(TokenType.LeftParen)) {
-      throw new Error("Expected '('");
+      throw createError("Expected '('");
     }
     const argument = expression();
     if (!match(TokenType.RightParen)) {
-      throw new Error("Expected ')'");
+      throw createError("Expected ')'");
     }
     return {
       type: NodeType.ConsoleLog,
@@ -294,13 +302,37 @@ export function createParser(tokens: Token[]) {
       };
     }
 
-    return primaryExpression();
+    return callExpression();
+  };
+
+  const callExpression = (): PrimaryExpression => {
+    let expr = primaryExpression();
+
+    // Handle chained function calls like f(x)(y)(z)
+    while (peek()?.type === TokenType.LeftParen) {
+      consume(); // consume '('
+      const argument = expression();
+      if (!match(TokenType.RightParen)) {
+        throw createError("Expected ')' after function call argument");
+      }
+
+      expr = {
+        type: NodeType.FunctionCall,
+        callee: {
+          type: NodeType.Expression,
+          body: expr,
+        },
+        argument,
+      };
+    }
+
+    return expr;
   };
 
   const parseNumber = (): NumberLiteral => {
     const token = consume();
     if (token?.type !== TokenType.Number) {
-      throw new Error("Expected number");
+      throw createError("Expected number");
     }
     return {
       type: NodeType.Number,
@@ -311,7 +343,7 @@ export function createParser(tokens: Token[]) {
   const parseString = (): StringLiteral => {
     const token = consume();
     if (token?.type !== TokenType.String) {
-      throw new Error("Expected string");
+      throw createError("Expected string");
     }
     return {
       type: NodeType.String,
@@ -349,7 +381,7 @@ export function createParser(tokens: Token[]) {
       };
     }
 
-    throw new Error(`Expected literal, got ${peek()?.type}`);
+    throw createError(`Expected literal, got ${peek()?.type}`);
   };
 
   const parseArrowFunction = (parameter: Identifier): ArrowFunction => {
@@ -362,26 +394,10 @@ export function createParser(tokens: Token[]) {
     };
   };
 
-  const parseFunctionCall = (callee: Identifier): FunctionCall => {
-    consume(); // consume '('
-    const argument = expression();
-    if (!match(TokenType.RightParen)) {
-      throw new Error("Expected ')' after function call argument");
-    }
-    return {
-      type: NodeType.FunctionCall,
-      callee: {
-        type: NodeType.Expression,
-        body: callee as PrimaryExpression,
-      },
-      argument,
-    };
-  };
-
   const parseIdentifier = (): PrimaryExpression => {
     const identifierToken = consume();
     if (identifierToken?.type !== TokenType.Identifier) {
-      throw new Error("Expected identifier");
+      throw createError("Expected identifier");
     }
 
     const identifier: Identifier = {
@@ -393,17 +409,13 @@ export function createParser(tokens: Token[]) {
       return parseArrowFunction(identifier);
     }
 
-    if (peek()?.type === TokenType.LeftParen) {
-      return parseFunctionCall(identifier);
-    }
-
     return identifier;
   };
 
   const parseParenthesizedExpression = (): ParenthesizedExpression => {
     const expr = expression();
     if (!match(TokenType.RightParen)) {
-      throw new Error("Expected ')' after expression");
+      throw createError("Expected ')' after expression");
     }
     return {
       type: NodeType.ParenthesizedExpression,
@@ -431,19 +443,10 @@ export function createParser(tokens: Token[]) {
       return parseParenthesizedExpression();
     }
 
-    throw new Error(`Unexpected token: ${peek()?.type}`);
+    throw createError(`Unexpected token: ${peek()?.type}`);
   };
 
   return program();
-}
-
-/**
- * Parses the given list of tokens into an Abstract Syntax Tree (AST).
- * @param tokens The list of tokens to parse.
- * @returns The root node of the AST representing the entire program.
- */
-export function parseTokens(tokens: Token[]): Program {
-  return createParser(tokens);
 }
 
 /**
@@ -453,5 +456,5 @@ export function parseTokens(tokens: Token[]): Program {
  */
 export function parse(program: string): Program {
   const tokens = lex(program);
-  return createParser(tokens);
+  return createParser(tokens, program);
 }
