@@ -7,6 +7,10 @@ A **lazy subset of JavaScript** - expressions are only evaluated when their valu
 - **JavaScript subset** with familiar syntax
 - **Lazy evaluation** with automatic memoization
 
+## Playground
+
+<a href="https://joshmoody24.github.io/skoobert/" target="_blank">Run Skoobert in the browser</a>
+
 ## Installation
 
 (TODO: Publish to npm)
