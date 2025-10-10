@@ -82,6 +82,13 @@ describe("lexer - positive tests", () => {
       TokenType.Eof,
     ]);
   });
+
+  it("should lex floating point number", () => {
+    const tokens = lex("3.14");
+    expect(tokens[0]?.type).toBe(TokenType.Number);
+    const numberToken = tokens[0] as { type: string; value: number };
+    expect(numberToken.value).toBe(3.14);
+  });
 });
 
 describe("lexer - negative tests", () => {

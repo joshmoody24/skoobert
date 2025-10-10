@@ -114,6 +114,7 @@
       select {
         width: auto;
         min-width: 200px;
+        margin-bottom: 0;
       }
     </style>
   </head>
@@ -122,7 +123,7 @@
       <div class="title-row">
         <h1>Skoobert Playground</h1>
         <select id="exampleSelector">
-          <option value="">Select an example...</option>
+          <option value="language-overview">Language Overview</option>
           <option value="hello-world">Hello World</option>
           <option value="fibonacci">Fibonacci</option>
           <option value="sk-combinators">SK Combinators</option>
@@ -165,15 +166,26 @@
         }
       );
 
-      // Set initial code
-      editor.setValue(`// Welcome to Skoobert!
-// A lazy functional programming language
+      // Get example from URL or default
+      function getInitialExample() {
+        const params = new URLSearchParams(window.location.search);
+        const example = params.get('example');
 
-let greet = name => "Hello, " + name + "!";
-console.log(greet("World"));
+        // Check if the example exists in the dropdown
+        const validExamples = Array.from(exampleSelector.options).map(opt => opt.value);
+        if (example && validExamples.includes(example)) {
+          return example;
+        }
 
-// Try changing the code above or select an example from the dropdown
-`);
+        return 'language-overview'; // default
+      }
+
+      // Load initial example
+      async function loadInitialExample() {
+        const example = getInitialExample();
+        exampleSelector.value = example;
+        await loadExample(example);
+      }
 
       const output = document.getElementById("output");
       const exampleSelector = document.getElementById("exampleSelector");
@@ -256,6 +268,12 @@ console.log(greet("World"));
           const code = await response.text();
           editor.setValue(code);
           runCode();
+
+          // Update URL without reloading page
+          const params = new URLSearchParams(window.location.search);
+          params.set('example', exampleName);
+          const newUrl = `${window.location.pathname}?${params.toString()}`;
+          window.history.replaceState(null, '', newUrl);
         } catch (error) {
           console.error("Failed to load example:", error);
           output.innerHTML =
@@ -271,8 +289,8 @@ console.log(greet("World"));
         loadExample(e.target.value)
       );
 
-      // Initial run
-      runCode();
+      // Load initial example on page load
+      loadInitialExample();
     </script>
   </body>
 </html>

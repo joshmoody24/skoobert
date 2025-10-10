@@ -152,9 +152,23 @@ function createLexer(input: string) {
       if (!char || !/[0-9]/.test(char)) return false;
 
       let value = "";
+
+      // Collect integer part
       while (peek() && /[0-9]/.test(peek()!)) {
         value += peek();
         advance();
+      }
+
+      // Check for decimal point
+      if (peek() === "." && peek(1) && /[0-9]/.test(peek(1)!)) {
+        value += ".";
+        advance();
+
+        // Collect fractional part
+        while (peek() && /[0-9]/.test(peek()!)) {
+          value += peek();
+          advance();
+        }
       }
 
       pushToken({ type: TokenType.Number, value: Number(value) });

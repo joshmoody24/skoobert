@@ -1,0 +1,86 @@
+// Welcome to Skoobert!
+// Skoobert is a lazy subset of JavaScript - most of this code will work in your browser console!
+//
+// WARNING: Some examples below will crash in JavaScript due to eager evaluation.
+// In Skoobert, expressions are only evaluated when their values are needed.
+
+// === BASIC TYPES ===
+
+// Numbers
+console.log(42);
+console.log(3.14159);
+console.log(10 + 20 * 2);  // 50 - standard precedence
+
+// Strings
+console.log("Hello, Skoobert!");
+console.log("String " + "concatenation");
+
+// Booleans
+console.log(true);
+console.log(false);
+console.log(5 > 3);  // true
+
+// === VARIABLES ===
+// Variables are immutable - once set, they cannot be changed
+
+let x = 10;
+let y = 20;
+console.log(x + y);  // 30
+
+// let x = 15;  // ERROR: Cannot redeclare 'x'
+// x = 15;      // ERROR: Cannot reassign variables
+
+// === FUNCTIONS ===
+// Functions are first-class values
+
+// Simple function
+let double = n => n * 2;
+console.log(double(21));  // 42
+
+// Functions can return functions (currying)
+let add = x => y => x + y;
+let add5 = add(5);
+console.log(add5(10));  // 15
+
+// Higher-order functions
+let twice = f => x => f(f(x));
+let quadruple = twice(double);
+console.log(quadruple(10));  // 40
+
+// === LAZY EVALUATION ===
+// This is where Skoobert differs from JavaScript!
+
+// This would crash JavaScript, but not Skoobert
+let dangerous = 1 / 0;  // Never evaluated
+let safe = 42;
+console.log(safe);  // 42 - dangerous is never used
+
+// Short-circuit evaluation
+console.log(true || 1 / 0);   // true - second part never evaluated
+console.log(false && 1 / 0);  // false - second part never evaluated
+
+// Conditional expressions (ternary)
+let result = true ? "Success" : 1 / 0;
+console.log(result);  // "Success" - error branch never evaluated
+
+// === FUNCTION COMPOSITION ===
+
+let compose = f => g => x => f(g(x));
+let shout = text => text + "!!!";
+let greet = name => "Hello, " + name;
+let excitedGreeting = compose(shout)(greet);
+
+console.log(excitedGreeting("World"));  // Hello, World!!!
+
+// === RECURSION ===
+// Functions can call themselves
+
+let factorial = n => n <= 1 ? 1 : n * factorial(n - 1);
+console.log(factorial(5));  // 120
+
+// Lazy evaluation makes infinite recursion safe when not used
+let loop = x => loop(x);  // Infinite loop
+let first = a => b => a;
+console.log(first(100)(loop(0)));  // 100 - loop never executes
+
+console.log("=== End of tour! Try editing the code above ===");

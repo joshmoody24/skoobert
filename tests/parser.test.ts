@@ -102,6 +102,23 @@ describe("parser - positive tests", () => {
     });
   });
 
+  it("should parse floating point number in console.log", () => {
+    const result = parse("console.log(3.14159);");
+    expect(result.statements[0]?.body).toMatchObject({
+      type: "side-effect",
+      body: {
+        type: "console-log",
+        argument: {
+          type: "expression",
+          body: {
+            type: "literal",
+            body: { type: "number", value: 3.14159 },
+          },
+        },
+      },
+    });
+  });
+
   it("should parse console.log statement with complex expression", () => {
     const result = parse("console.log(5 > 3 && 2 < 4);");
     expect(result.statements[0]?.body).toMatchObject({

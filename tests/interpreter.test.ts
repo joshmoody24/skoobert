@@ -31,6 +31,15 @@ describe("interpreter - basic evaluation", () => {
     });
   });
 
+  it("should handle floating point division correctly", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse("console.log(10 / 3);"), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.Number,
+      value: 10 / 3,  // 3.333...
+    });
+  });
+
   it("should evaluate boolean expressions", () => {
     const mockOutput = vi.fn<[Value], void>();
     interpret(parse("console.log(5 > 3 && 2 < 4);"), { onOutput: mockOutput });
