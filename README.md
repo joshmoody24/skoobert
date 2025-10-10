@@ -20,8 +20,7 @@ npm test
 ## Usage
 
 ```typescript
-import { parse } from './src/parser/index.js';
-import { interpret } from './src/interpreter/index.js';
+import { parse, interpret } from 'skoobert';
 
 // Basic usage with default console output
 const ast = parse('let x = 42; console.log(x);');

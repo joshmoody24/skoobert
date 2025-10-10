@@ -2,7 +2,18 @@
   "name": "skoobert",
   "version": "1.0.0",
   "description": "A lazy subset of JavaScript",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "test": "vitest",
     "lint": "eslint .",
@@ -11,6 +22,7 @@
     "format:check": "prettier --check .",
     "check": "npm run typecheck && npm run lint",
     "build": "npm run check && tsc",
+    "prepublishOnly": "npm run build",
     "clean": "rm -rf dist"
   },
   "repository": {
