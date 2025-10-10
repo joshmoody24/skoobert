@@ -1,0 +1,13 @@
+// Hello World example
+// Demonstrates basic string operations and functions
+
+let greet = name => "Hello, " + name + "!";
+
+console.log(greet("World"));
+console.log(greet("Skoobert"));
+
+// String concatenation
+let first = "Welcome ";
+let second = "to ";
+let third = "Skoobert!";
+console.log(first + second + third);

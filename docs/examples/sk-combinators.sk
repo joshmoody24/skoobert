@@ -1,0 +1,63 @@
+// SK Combinator Calculus
+// The foundation of computation using only two combinators
+
+// Basic combinators
+let S = x => y => z => x(z)(y(z));
+let K = x => y => x;
+
+// The identity combinator derived from S and K
+let I = S(K)(K);
+
+console.log("Testing basic combinators:");
+console.log(I(42));        // Identity: returns 42
+console.log(K(10)(20));    // Constant: returns 10
+
+// Boolean logic using combinators
+let TRUE = K;
+let FALSE = K(I);
+let NOT = p => p(FALSE)(TRUE);
+let AND = p => q => p(q)(FALSE);
+let OR = p => q => p(TRUE)(q);
+
+// More derived combinators
+let B = S(K(S))(K);        // Composition combinator
+let C = S(B(B)(S))(K(K));  // Flip combinator
+let W = S(S)(K(I));        // Duplication combinator
+let M = S(I)(I);           // Mockingbird (self-application)
+
+// Lazy evaluation test - M(M) would diverge with eager evaluation
+console.log("Lazy evaluation test:");
+console.log(K(42)(M(M)));  // Returns 42 without evaluating M(M)
+
+// Barendregt numerals
+let T = C(I);              // Flip identity: T x y = I y x = y
+let V = B(C)(T);           // Vireo combinator
+let ZERO = I;
+let IS_ZERO = T(TRUE);     // IS_ZERO n = n TRUE
+let SUCC = V(FALSE);        // SUCC n = V FALSE n
+let PRED = T(FALSE);        // PRED n = n FALSE
+
+// Build some numbers
+let ONE = SUCC(ZERO);
+let TWO = SUCC(ONE);
+let THREE = SUCC(TWO);
+let FOUR = SUCC(THREE);
+let FIVE = SUCC(FOUR);
+
+// Convert Barendregt numeral to JavaScript number
+let toNumber = n => IS_ZERO(n)(0)(1 + toNumber(PRED(n)));
+
+console.log("Barendregt numerals:");
+console.log(toNumber(ZERO));   // 0
+console.log(toNumber(THREE));  // 3
+console.log(toNumber(FIVE));   // 5
+
+// Y combinator for recursion
+let Y = f => (x => f(x(x)))(x => f(x(x)));
+
+// Addition using Y combinator
+let ADD = Y(f => m => n => IS_ZERO(m)(n)(SUCC(f(PRED(m))(n))));
+
+console.log("Addition with combinators:");
+console.log(toNumber(ADD(TWO)(THREE)));  // 5
+console.log(toNumber(ADD(FOUR)(FIVE)));  // 9

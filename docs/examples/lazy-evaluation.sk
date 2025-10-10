@@ -1,0 +1,31 @@
+// Lazy Evaluation Demo
+// Skoobert only evaluates expressions when their values are needed
+
+// This would cause an error in eager languages, but not in Skoobert!
+let dangerous = 1 / 0;
+let safe = 42;
+console.log(safe);  // 42 - dangerous is never evaluated
+
+// Short-circuit evaluation
+console.log(true || 1 / 0);   // true - second part never evaluated
+console.log(false && 1 / 0);  // false - second part never evaluated
+
+// Conditional branches - only the chosen branch is evaluated
+let result = true ? "Success!" : 1 / 0;
+console.log(result);  // "Success!" - error branch never evaluated
+
+// Functions with unused arguments
+let first = x => y => x;
+console.log(first(100)(1 / 0));  // 100 - second argument never used
+
+// Infinite recursion that doesn't crash (when not used)
+let loop = x => loop(x);
+let ignoreSecond = a => b => a;
+console.log(ignoreSecond("I'm safe!")(loop(0)));  // "I'm safe!"
+
+// Building infinite data structures (conceptually)
+let ones = n => n === 0 ? 1 : ones(n - 1);
+console.log(ones(0));   // 1
+console.log(ones(100)); // 1 - efficiently computed
+
+console.log("All lazy evaluation tests passed!");

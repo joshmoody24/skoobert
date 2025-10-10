@@ -21,9 +21,10 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run typecheck && npm run lint",
-    "build": "npm run check && tsc",
+    "build": "npm run check && tsc && npm run build:web",
+    "build:web": "esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2020 --minify --outfile=docs/skoobert.bundle.js",
     "prepublishOnly": "npm run build",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist docs/skoobert.bundle.js"
   },
   "repository": {
     "type": "git",
@@ -40,6 +41,7 @@
   "homepage": "https://github.com/joshmoody24/skoobert#readme",
   "devDependencies": {
     "@eslint/js": "^9.37.0",
+    "esbuild": "^0.25.10",
     "eslint": "^9.37.0",
     "globals": "^16.4.0",
     "jiti": "^2.6.1",

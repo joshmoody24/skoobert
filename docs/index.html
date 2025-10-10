@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Skoobert Playground</title>
+
+    <!-- Pico CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"
+    />
+
+    <!-- CodeMirror -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css"
+    />
+
+    <style>
+      body {
+        padding: 1rem;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header {
+        flex-shrink: 0;
+        margin-bottom: 1rem;
+      }
+
+      .editor-container {
+        flex-grow: 1;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        min-height: 0;
+      }
+
+      @media (max-width: 768px) {
+        .editor-container {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr 1fr;
+        }
+      }
+
+      .panel {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .panel-header {
+        flex-shrink: 0;
+        padding: 0.5rem 1rem;
+        background: var(--pico-card-background-color);
+        border: 1px solid var(--pico-muted-border-color);
+        border-bottom: none;
+        border-radius: var(--pico-border-radius) var(--pico-border-radius) 0 0;
+        font-weight: bold;
+      }
+
+      .CodeMirror {
+        flex-grow: 1;
+        height: 100%;
+        border: 1px solid var(--pico-muted-border-color);
+        border-radius: 0 0 var(--pico-border-radius) var(--pico-border-radius);
+        font-size: 14px;
+      }
+
+      #output {
+        flex-grow: 1;
+        background: #1e1e1e;
+        color: #f8f8f2;
+        padding: 1rem;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        overflow-y: auto;
+        border: 1px solid var(--pico-muted-border-color);
+        border-radius: 0 0 var(--pico-border-radius) var(--pico-border-radius);
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .output-line {
+        margin: 0.25rem 0;
+      }
+
+      .output-error {
+        color: #ff5555;
+      }
+
+      .output-log {
+        color: #50fa7b;
+      }
+
+      .title-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        margin: 0;
+        flex-grow: 1;
+      }
+
+      select {
+        width: auto;
+        min-width: 200px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="title-row">
+        <h1>Skoobert Playground</h1>
+        <select id="exampleSelector">
+          <option value="">Select an example...</option>
+          <option value="hello-world">Hello World</option>
+          <option value="fibonacci">Fibonacci</option>
+          <option value="sk-combinators">SK Combinators</option>
+          <option value="lazy-evaluation">Lazy Evaluation Demo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="editor-container">
+      <div class="panel">
+        <div class="panel-header">Code</div>
+        <textarea id="codeEditor"></textarea>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">Output</div>
+        <div id="output"></div>
+      </div>
+    </div>
+
+    <!-- CodeMirror -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js"></script>
+
+    <!-- Load Skoobert bundle -->
+    <script type="module">
+      import { parse, interpret } from "./skoobert.bundle.js";
+
+      // Initialize CodeMirror
+      const editor = CodeMirror.fromTextArea(
+        document.getElementById("codeEditor"),
+        {
+          mode: "javascript",
+          theme: "dracula",
+          lineNumbers: true,
+          lineWrapping: true,
+          autofocus: true,
+          tabSize: 2,
+          indentWithTabs: false,
+        }
+      );
+
+      // Set initial code
+      editor.setValue(`// Welcome to Skoobert!
+// A lazy functional programming language
+
+let greet = name => "Hello, " + name + "!";
+console.log(greet("World"));
+
+// Try changing the code above or select an example from the dropdown
+`);
+
+      const output = document.getElementById("output");
+      const exampleSelector = document.getElementById("exampleSelector");
+
+      // Debounced run function
+      let runTimeout;
+      function scheduleRun() {
+        clearTimeout(runTimeout);
+        runTimeout = setTimeout(runCode, 1000);
+      }
+
+      function runCode() {
+        const code = editor.getValue();
+        output.innerHTML = "";
+
+        try {
+          const ast = parse(code);
+          interpret(ast, {
+            onOutput: (value) => {
+              const line = document.createElement("div");
+              line.className = "output-line output-log";
+
+              // Format output based on type
+              let text;
+              switch (value.type) {
+                case "number":
+                  text = String(value.value);
+                  break;
+                case "string":
+                  text = value.value;
+                  break;
+                case "boolean":
+                  text = String(value.value);
+                  break;
+                case "function":
+                  text = "[Function]";
+                  break;
+                default:
+                  text = JSON.stringify(value);
+              }
+
+              line.textContent = text;
+              output.appendChild(line);
+            },
+          });
+
+          if (output.children.length === 0) {
+            const line = document.createElement("div");
+            line.className = "output-line";
+            line.style.color = "#6272a4";
+            line.textContent = "(No output)";
+            output.appendChild(line);
+          }
+        } catch (error) {
+          const line = document.createElement("div");
+          line.className = "output-line output-error";
+
+          if (
+            error.name === "ParseError" ||
+            error.name === "LexError" ||
+            error.name === "RuntimeError"
+          ) {
+            line.textContent = error.toString();
+          } else {
+            line.textContent = "Error: " + error.message;
+          }
+
+          output.appendChild(line);
+        }
+      }
+
+      // Load example files
+      async function loadExample(exampleName) {
+        if (!exampleName) return;
+
+        try {
+          const response = await fetch(`./examples/${exampleName}.sk`);
+          if (!response.ok) throw new Error("Example not found");
+
+          const code = await response.text();
+          editor.setValue(code);
+          runCode();
+        } catch (error) {
+          console.error("Failed to load example:", error);
+          output.innerHTML =
+            '<div class="output-line output-error">Failed to load example: ' +
+            error.message +
+            "</div>";
+        }
+      }
+
+      // Event listeners
+      editor.on("change", scheduleRun);
+      exampleSelector.addEventListener("change", (e) =>
+        loadExample(e.target.value)
+      );
+
+      // Initial run
+      runCode();
+    </script>
+  </body>
+</html>
