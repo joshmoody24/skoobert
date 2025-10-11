@@ -31,6 +31,7 @@ let V = C(F);
 let L = C(B)(M);
 let W = S(T);
 let C_STAR = B(C);
+let C_STAR_STAR = B(C_STAR);
 let R_STAR = C_STAR(C_STAR);
 let Y = W(C)(S(B)(C(W(C))));
 
@@ -78,26 +79,8 @@ let ADD_TWO = Y(ADD_TWO_X);
 
 console.log(toNumber(ADD_TWO(FIVE)));
 
-// Another derivation:
-// Starting from ADD_TWO_X above, but generalizing TWO to a variable m
-// Xynm = B(S(CZm))(B(BN)(CBP))yn
-// Xynm = B(BS(CZ)m)(B(BN)(CBP))yn
-// Xynm = BB(BS(CZ))m(B(BN)(CBP))yn
-// Xynm = T(B(BN)(CBP))(BB(BS(CZ))m)yn
-// P1 = T(B(BN)(CBP))
-// P2 = BB(BS(CZ))
-// Xynm = 'P1'('P2'm)yn
-// Xynm = B'P1''P2'myn
-// P3 = B'P1''P2'
-// Xynm = 'P3'myn
-// ???
-let P1 = T(B(B(SUCC))(C(B)(PRED)));
-let P2 = B(B)(B(S)(C(IS_ZERO)));
-let P3 = B(P1)(P2);
-let ADD_X = R_STAR(P3);
+let ADD = Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED)));
 
-// let ADD = Y(ADD_X);
-let ADD = (m) => Y(P3(m));
 console.log(toNumber(ADD(FIVE)(FOUR)));
 
 console.log("test completed");
