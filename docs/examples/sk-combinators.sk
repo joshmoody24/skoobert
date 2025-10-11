@@ -27,6 +27,7 @@ let M = S(I)(I);           // Mockingbird: x => x(x) - self-application
 let T = C(I);              // Thrush: x => y => y(x) - flip (simpler than C)
 let V = B(C)(T);           // Vireo: x => y => z => z(x)(y) - pair/vireo
 let C_STAR = B(C);         // Cardinal once removed: x => y => z => w => x(y)(w)(z)
+let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v => x(y)(z)(v)(w)
 let R_STAR = C_STAR(C_STAR); // Robin once removed: x => y => z => w => x(z)(w)(y)
 
 // Lazy evaluation test - M(M) would diverge with eager evaluation
@@ -60,45 +61,27 @@ let Y = W(C)(S(B)(C(W(C))));
 // Equivalent in Lambda Calculus (more readable, less metal)
 // let Y = f => (x => f(x(x)))(x => f(x(x)));
 
-// Derivation of ADD combinator:
-// Start with ADD_ZERO: f => n => IS_ZERO(n)(ZERO)(SUCC(f(PRED(n))))
-// In combinator form (with f, n as implicit arguments):
-// fn = IS_ZERO(n)(ZERO)(SUCC(f(PRED(n))))
-// The goal is to get n by itself on the far right:
-// fn = C(IS_ZERO)(ZERO)(n)(SUCC(f(PRED(n))))
-// fn = C(IS_ZERO)(ZERO)(n)(SUCC(B(f)(PRED)(n)))
-// fn = C(IS_ZERO)(ZERO)(n)(B(SUCC)(B(f)(PRED))(n))
-// fn = S(C(IS_ZERO)(ZERO))(B(SUCC)(B(f)(PRED)))(n)
-// f = S(C(IS_ZERO)(ZERO))(B(SUCC)(C(B)(PRED)(f)))
-// f = S(C(IS_ZERO)(ZERO))(B(B(SUCC))(C(B)(PRED)))(f)
-// f = B(S(C(IS_ZERO)(ZERO)))(B(B(SUCC))(C(B)(PRED)))(f)
-// ADD_ZERO_X = B(S(C(IS_ZERO)(ZERO)))(B(B(SUCC))(C(B)(PRED)))
-//
-// Now generalize ZERO to m to get general ADD:
-// fmn = B(S(C(IS_ZERO)(m)))(B(B(SUCC))(C(B)(PRED)))(f)(n)
-// fmn = B(B(S)(C(IS_ZERO)))(m)(B(B(SUCC))(C(B)(PRED)))(f)(n)
-// fmn = B(B)(B(S)(C(IS_ZERO)))(m)(B(B(SUCC))(C(B)(PRED)))(f)(n)
-// fmn = T(B(B(SUCC))(C(B)(PRED)))(B(B)(B(S)(C(IS_ZERO)))(m))(f)(n)
-// fm = T(B(B(SUCC))(C(B)(PRED)))(B(B)(B(S)(C(IS_ZERO)))(m))(f)
-// fm = B(T(B(B(SUCC))(C(B)(PRED))))(B(B)(B(S)(C(IS_ZERO))))(m)(f)
-// f = R_STAR(B(T(B(B(SUCC))(C(B)(PRED))))(B(B)(B(S)(C(IS_ZERO)))))
-//
-// Breaking down into parts:
-// P1 = T(B(B(SUCC))(C(B)(PRED)))
-// P2 = B(B)(B(S)(C(IS_ZERO)))
-// P3 = B(P1)(P2)
-// ADD_X = R_STAR(P3)
-// ADD = Y(ADD_X)
-
-let P1 = T(B(B(SUCC))(C(B)(PRED)));
-let P2 = B(B)(B(S)(C(IS_ZERO)));
-let P3 = B(P1)(P2);
-// let ADD_X = R_STAR(P3); // theoretically this seems right, but it's not working
-// let ADD = Y(ADD_X);
-let ADD = (m) => Y(P3(m)); // Sad non-point-free workaround for now :(
-
-// Equivalent in Lambda Calculus (more readable, way less metal)
+// Starting from Lambda Calculus (more readable, way less metal)
 // let ADD = Y(f => m => n => IS_ZERO(n)(m)(SUCC(f(PRED(n))(m))));
+// First eliminate m
+// ADD(n)(m) = IS_ZERO(n)(m)(SUCC(ADD(PRED(n))(m)))
+// ADD(n)(m) = B(IS_ZERO(n)(m))(SUCC)(ADD(PRED(n))(m))
+// ADD(n)(m) = B(B)(IS_ZERO(n))(m)(SUCC)(ADD(PRED(n))(m))
+// ADD(n)(m) = C(B(B)(IS_ZERO(n)))(SUCC)(m)(ADD(PRED(n))(m))
+// ADD(n)(m) = S(C(B(B)(IS_ZERO(n)))(SUCC))(ADD(PRED(n)))(m)
+// Then eliminate n
+// ADD(n)(m) = S(C(B(B(B))(IS_ZERO)(n))(SUCC))(ADD(PRED(n)))(m)
+// ADD(n)(m) = S(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)(n))(ADD(PRED(n)))(m)
+// ADD(n)(m) = B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))(n)(B(ADD)(PRED)(n))(m)
+// ADD(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(ADD)(PRED))(n)(m)
+// Then eliminate the explicit self reference
+// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(y)(PRED))(n)(m)
+// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(K(I)(y)(B(y))(PRED))(n)(m)
+// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(S(K(I))(B)(y)(PRED))(n)(m)
+// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(C(S(K(I))(B))(PRED)(y))(n)(m)
+// ADD_MAKER(y)(n)(m) = B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED))(y)(n)(m)
+
+let ADD = Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED)));
 
 console.log("Addition with combinators:");
 console.log(toNumber(ADD(TWO)(THREE)));  // 5
