@@ -120,28 +120,8 @@ console.log("2 + 3 = " + toNumber(ADD(TWO)(THREE)));  // 5
 console.log("4 + 5 = " + toNumber(ADD(FOUR)(FIVE)));  // 9
 
 // Subtraction
-// let SUBTRACT = m => n => IS_ZERO(n)(m)(SUBTRACT(DECREMENT(m))(PRED(n)))
-// First eliminate n
-// SUBTRACT(m)(n) = IS_ZERO(n)(m)(SUBTRACT(DECREMENT(m))(PRED(n)))
-// SUBTRACT(m)(n) = IS_ZERO(n)(m)(B(SUBTRACT(DECREMENT(m)))(PRED)(n))
-// SUBTRACT(m)(n) = C(IS_ZERO)(m)(n)(B(SUBTRACT(DECREMENT(m)))(PRED)(n))
-// SUBTRACT(m)(n) = S(C(IS_ZERO)(m))(B(SUBTRACT(DECREMENT(m)))(PRED))(n)
-// Then eliminate m
-// SUBTRACT(m)(n) = S(C(IS_ZERO)(m))(B(B(SUBTRACT)(DECREMENT)(m))(PRED))(n)
-// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(B(B(SUBTRACT)(DECREMENT)(m))(PRED))(n)
-// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(B(B)(B(SUBTRACT)(DECREMENT))(m)(PRED))(n)
-// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(C(B(B)(B(SUBTRACT)(DECREMENT)))(PRED)(m))(n)
-// SUBTRACT(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(B(SUBTRACT)(DECREMENT)))(PRED))(m)(n)
-// Then eliminate the explicit self reference
-// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(B(y)(DECREMENT)))(PRED))(m)(n)
-// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(C(B)(DECREMENT)(y)))(PRED))(m)(n)
-// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B(B))(C(B)(DECREMENT))(y))(PRED))(m)(n)
-// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(B(C)(B(B(B))(C(B)(DECREMENT)))(y)(PRED))(m)(n)
-// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED)(y))(m)(n)
-// SUBTRACT_MAKER(y)(m)(n) = B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED))(y)(m)(n)
-// SUBTRACT_MAKER = B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED))
-// SUBTRACT = Y(SUBTRACT_MAKER)
-let SUBTRACT = Y(B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED)));
+// Same as ADD except with DECREMENT instead of SUCC, and wrapped in C to swap the params
+let SUBTRACT = C(Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(DECREMENT))))(C(S(K(I))(B))(PRED))));
 
 console.log("\nSubtraction:");
 console.log("5 - 2 = " + toNumber(SUBTRACT(FIVE)(TWO)));  // 3
