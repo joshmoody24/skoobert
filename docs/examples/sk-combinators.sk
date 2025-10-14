@@ -20,6 +20,7 @@ let M = S(I)(I);             // Mockingbird: x => x(x)           - self-applicat
 let T = C(I);                // Thrush:      x => y => y(x)           - flip arguments
 let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)    - move last argument to front
 let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)    - move middle argument to front
+let E = B(B(B)(B));          // Eagle:       x => y => z => w => v => x(y)(z(w(v)))
 
 let R_STAR = C_STAR(C_STAR); // Robin once removed:     x => y => z => w => x(z)(w)(y)          - AKA R*
 let C_STAR = B(C);           // Cardinal once removed:  x => y => z => w => x(y)(w)(z)          - AKA C*
@@ -169,16 +170,11 @@ console.log("5 % 3 = " + toNumber(MOD(FIVE)(THREE)));
 console.log("4 % 2 = " + toNumber(MOD(FOUR)(TWO)));
 
 // let DECIMAL2 = x => y => ADD(MULTIPLY(TEN)(x))(y);
-let DECIMAL2 = x => ADD(MULTIPLY(TEN)(x));
+let DECIMAL2 = B(ADD)(MULTIPLY(TEN));
+
+// let DECIMAL3 = x => y => z => ADD(MULTIPLY(ONE_HUNDRED)(DECIMAL2(y)(z))
 let ONE_HUNDRED = MULTIPLY(TEN)(TEN);
-let DECIMAL3 = x => y => z =>
-  ADD(
-    ADD(
-      MULTIPLY(ONE_HUNDRED)(x)
-    )(
-      MULTIPLY(TEN)(y)
-    )
-  )(z);
+let DECIMAL3 = C(E(B(ADD)(MULTIPLY(ONE_HUNDRED))))(DECIMAL2);
 
 console.log("\nDecimal numbers:");
 console.log("Twenty-six: " + toNumber(DECIMAL2(TWO)(SIX)));
