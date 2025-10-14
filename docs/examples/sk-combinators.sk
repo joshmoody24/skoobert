@@ -219,8 +219,8 @@ console.log("\nLists:");
 console.log("1, 2, 3: " + toArray(toNumber)(
   CONS(ONE)
   (CONS(TWO)(CONS(THREE)(EMPTY)))));
-console.log("1 to 10: " + toArray(toNumber)(RANGE(ONE)(TEN)));
-console.log("Fold sum 1 to 4 = " + toNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
+console.log("1..10: " + toArray(toNumber)(RANGE(ONE)(TEN)));
+console.log("Sum 1..4 = " + toNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
 // console.log("1, 2, 3, incremented = " + toArray(toNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 // -> [2, 3, 4]
 
