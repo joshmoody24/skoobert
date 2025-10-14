@@ -20,7 +20,8 @@ let M = S(I)(I);             // Mockingbird: x => x(x)           - self-applicat
 let T = C(I);                // Thrush:      x => y => y(x)           - flip arguments
 let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)    - move last argument to front
 let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)    - move middle argument to front
-let E = B(B(B)(B));          // Eagle:       x => y => z => w => v => x(y)(z(w(v)))
+let B1 = B(B)(B);            // Blackbird:   x => y => z => w => x(y(b)(w))
+let E = B(B1);               // Eagle:       x => y => z => w => v => x(y)(z(w(v)))
 
 let R_STAR = C_STAR(C_STAR); // Robin once removed:     x => y => z => w => x(z)(w)(y)          - AKA R*
 let C_STAR = B(C);           // Cardinal once removed:  x => y => z => w => x(y)(w)(z)          - AKA C*
@@ -137,12 +138,10 @@ console.log("5 * 5 = " + toNumber(MULTIPLY(FIVE)(FIVE)));
 console.log("3 * 4 = " + toNumber(MULTIPLY(THREE)(FOUR)));
 console.log("2 * 0 = " + toNumber(MULTIPLY(TWO)(ZERO)));
 
-let PSI = B(B)(B); // f => g => x => y => f(g(x)(y))
-
 // LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))(TRUE)(FALSE)
 // LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))
-// LESS_THAN_OR_EQUAL(a)(b) = PSI(IS_ZERO)(SUBTRACT)
-let LESS_THAN_OR_EQUAL = PSI(IS_ZERO)(SUBTRACT);
+// LESS_THAN_OR_EQUAL(a)(b) = B1(IS_ZERO)(SUBTRACT)
+let LESS_THAN_OR_EQUAL = B1(IS_ZERO)(SUBTRACT);
 let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
 
 console.log("\nLess than or equal:");
@@ -150,7 +149,7 @@ console.log("3 <= 2 = " + toBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // true
 console.log("4 <= 5 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
 console.log("0 <= 0 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
 
-let INVERT_BINARY_RELATION = PSI(NOT);
+let INVERT_BINARY_RELATION = B1(NOT);
 let GREATER_THAN = INVERT_BINARY_RELATION(LESS_THAN_OR_EQUAL);
 let LESS_THAN = INVERT_BINARY_RELATION(GREATER_THAN_OR_EQUAL);
 
