@@ -9,78 +9,240 @@ let K = x => y => x;
 let I = S(K)(K);
 
 console.log("Testing basic combinators:");
-console.log(I(42));        // Identity: returns 42
-console.log(K(10)(20));    // Constant: returns 10
-
-// Boolean logic using combinators
-let TRUE = K;
-let FALSE = K(I);
-let NOT = p => p(FALSE)(TRUE);
-let AND = p => q => p(q)(FALSE);
-let OR = p => q => p(TRUE)(q);
+console.log("Identify combinator: 42 = " + I(42));            // Identity: returns 42
+console.log("Kestral combinator: K(10)(20) = " + K(10)(20));  // Constant: returns 10
 
 // More derived combinators (with their lambda forms)
-let B = S(K(S))(K);        // Bluebird: x => y => z => x(y(z)) - composition
-let C = S(B(B)(S))(K(K));  // Cardinal: x => y => z => x(z)(y) - flip arguments
-let W = S(S)(K(I));        // Warbler: x => y => x(y)(y) - duplicate argument
-let M = S(I)(I);           // Mockingbird: x => x(x) - self-application
-let T = C(I);              // Thrush: x => y => y(x) - flip (simpler than C)
-let V = B(C)(T);           // Vireo: x => y => z => z(x)(y) - pair/vireo
-let C_STAR = B(C);         // Cardinal once removed: x => y => z => w => x(y)(w)(z)
-let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v => x(y)(z)(v)(w)
-let R_STAR = C_STAR(C_STAR); // Robin once removed: x => y => z => w => x(z)(w)(y)
+let B = S(K(S))(K);          // Bluebird:    x => y => z => x(y(z)) - composition
+let C = S(B(B)(S))(K(K));    // Cardinal:    x => y => z => x(z)(y) - flip last two arguments
+let W = S(S)(K(I));          // Warbler:     x => y => x(y)(y)       - duplicate argument
+let M = S(I)(I);             // Mockingbird: x => x(x)           - self-application
+let T = C(I);                // Thrush:      x => y => y(x)           - flip arguments
+let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)    - move last argument to front
+let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)    - move middle argument to front
+
+let R_STAR = C_STAR(C_STAR); // Robin once removed:     x => y => z => w => x(z)(w)(y)          - AKA R*
+let C_STAR = B(C);           // Cardinal once removed:  x => y => z => w => x(y)(w)(z)          - AKA C*
+let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v => x(y)(z)(v)(w)  - AKA C**
+
+
+// Boolean logic using combinators
+let TRUE = K;      // given two things, choose the first
+let FALSE = K(I);  // given two things, choose the second
+let IF = I;
+
+let toBoolean = (x) => x(true)(false);
+
+let NOT = V(FALSE)(TRUE); // NOT = p => p(FALSE)(TRUE);
+
+console.log("\nBoolean logic:");
+console.log("NOT true = " + toBoolean(NOT(TRUE)));
+console.log("NOT false = " + toBoolean(NOT(TRUE)));
+
+// let AND = p => q => p(q)(FALSE); Vireo?
+// let OR = p => q => p(TRUE)(q);
 
 // Lazy evaluation test - M(M) would diverge with eager evaluation
 console.log("\nLazy evaluation test:");
-console.log(K(42)(M(M)));  // Returns 42 without evaluating M(M)
+console.log(K(42)(M(M)) + " (this would throw an error in normal JavaScript)");  // Returns 42 without evaluating M(M)
 
 // Barendregt numerals
 let ZERO = I;
-let IS_ZERO = T(TRUE);     // IS_ZERO n = n TRUE
+let IS_ZERO = T(TRUE);      // IS_ZERO n = n TRUE
 let SUCC = V(FALSE);        // SUCC n = V FALSE n
 let PRED = T(FALSE);        // PRED n = n FALSE
+let DECREMENT = m => IS_ZERO(m)(m)(PRED(m)); // Clamped version of PRED
 
 // Build some numbers
-let ONE = SUCC(ZERO);
-let TWO = SUCC(ONE);
+let ONE   = SUCC(ZERO);
+let TWO   = SUCC(ONE);
 let THREE = SUCC(TWO);
-let FOUR = SUCC(THREE);
-let FIVE = SUCC(FOUR);
+let FOUR  = SUCC(THREE);
+let FIVE  = SUCC(FOUR);
+let SIX   = SUCC(FIVE);
+let SEVEN = SUCC(SIX);
+let EIGHT = SUCC(SEVEN);
+let NINE  = SUCC(EIGHT);
+let TEN   = SUCC(NINE);
 
 // Convert Barendregt numeral to JavaScript number
-let toNumber = n => IS_ZERO(n)(0)(1 + toNumber(PRED(n)));
+let toNumber = m => IS_ZERO(m)(0)(1 + toNumber(PRED(m)));
 
-console.log("\nBarendregt numerals:");
-console.log(toNumber(ZERO));   // 0
-console.log(toNumber(THREE));  // 3
-console.log(toNumber(FIVE));   // 5
+console.log("\nBarendregt/Scott numerals:");
+console.log("One: " + toNumber(ZERO));   // 0
+console.log("Three: " + toNumber(THREE));  // 3
+console.log("Five: " + toNumber(FIVE));   // 5
 
 // Y combinator for recursion
 // let Y = f => (x => f(x(x)))(x => f(x(x)));
 let Y = W(C)(S(B)(C(W(C))));
 
+// TODO combinator version
+let NUMBER_EQUALS = x => y =>
+  IS_ZERO(x)
+    (IS_ZERO(y)
+       (TRUE)
+       (FALSE))
+    (IS_ZERO(y)
+       (FALSE)
+       (NUMBER_EQUALS(PRED(x))(PRED(y))));
+
+console.log("\nNumber equality:");
+console.log("5 == 5 = " + toBoolean(NUMBER_EQUALS(FIVE)(FIVE)));
+console.log("1 == 2 = " + toBoolean(NUMBER_EQUALS(ONE)(TWO)));
+
 // Addition
 // Starting from Lambda Calculus (more readable, way less metal)
-// let ADD = Y(f => m => n => IS_ZERO(n)(m)(SUCC(f(PRED(n))(m))));
-// First eliminate m
-// ADD(n)(m) = IS_ZERO(n)(m)(SUCC(ADD(PRED(n))(m)))
-// ADD(n)(m) = B(IS_ZERO(n)(m))(SUCC)(ADD(PRED(n))(m))
-// ADD(n)(m) = B(B)(IS_ZERO(n))(m)(SUCC)(ADD(PRED(n))(m))
-// ADD(n)(m) = C(B(B)(IS_ZERO(n)))(SUCC)(m)(ADD(PRED(n))(m))
-// ADD(n)(m) = S(C(B(B)(IS_ZERO(n)))(SUCC))(ADD(PRED(n)))(m)
-// Then eliminate n
-// ADD(n)(m) = S(C(B(B(B))(IS_ZERO)(n))(SUCC))(ADD(PRED(n)))(m)
-// ADD(n)(m) = S(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)(n))(ADD(PRED(n)))(m)
-// ADD(n)(m) = B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))(n)(B(ADD)(PRED)(n))(m)
-// ADD(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(ADD)(PRED))(n)(m)
+// let ADD = m => n => IS_ZERO(m)(n)(SUCC(ADD(PRED(m))(n)));
+// First eliminate n
+// ADD(m)(n) = IS_ZERO(m)(n)(SUCC(ADD(PRED(m))(n)))
+// ADD(m)(n) = B(IS_ZERO(m)(n))(SUCC)(ADD(PRED(m))(n))
+// ADD(m)(n) = B(B)(IS_ZERO(m))(n)(SUCC)(ADD(PRED(m))(n))
+// ADD(m)(n) = C(B(B)(IS_ZERO(m)))(SUCC)(n)(ADD(PRED(m))(n))
+// ADD(m)(n) = S(C(B(B)(IS_ZERO(m)))(SUCC))(ADD(PRED(m)))(n)
+// Then eliminate m
+// ADD(m)(n) = S(C(B(B(B))(IS_ZERO)(m))(SUCC))(ADD(PRED(m)))(n)
+// ADD(m)(n) = S(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)(m))(ADD(PRED(m)))(n)
+// ADD(m)(n) = B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))(m)(B(ADD)(PRED)(m))(n)
+// ADD(m)(n) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(ADD)(PRED))(m)(n)
 // Then eliminate the explicit self reference
-// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(y)(PRED))(n)(m)
-// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(K(I)(y)(B(y))(PRED))(n)(m)
-// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(S(K(I))(B)(y)(PRED))(n)(m)
-// ADD_MAKER(y)(n)(m) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(C(S(K(I))(B))(PRED)(y))(n)(m)
-// ADD_MAKER(y)(n)(m) = B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED))(y)(n)(m)
+// ADD_MAKER(y)(m)(n) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(B(y)(PRED))(m)(n)
+// ADD_MAKER(y)(m)(n) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(K(I)(y)(B(y))(PRED))(m)(n)
+// ADD_MAKER(y)(m)(n) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(S(K(I))(B)(y)(PRED))(m)(n)
+// ADD_MAKER(y)(m)(n) = S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC)))(C(S(K(I))(B))(PRED)(y))(m)(n)
+// ADD_MAKER(y)(m)(n) = B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED))(y)(m)(n)
+// ADD_MAKER = B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED))
+// ADD = Y(ADD_MAKER)
 let ADD = Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED)));
 
-console.log("\nAddition with combinators:");
-console.log(toNumber(ADD(TWO)(THREE)));  // 5
-console.log(toNumber(ADD(FOUR)(FIVE)));  // 9
+console.log("\nAddition:");
+console.log("2 + 3 = " + toNumber(ADD(TWO)(THREE)));  // 5
+console.log("4 + 5 = " + toNumber(ADD(FOUR)(FIVE)));  // 9
+
+// Subtraction
+// let SUBTRACT = m => n => IS_ZERO(n)(m)(SUBTRACT(DECREMENT(m))(PRED(n)))
+// First eliminate n
+// SUBTRACT(m)(n) = IS_ZERO(n)(m)(SUBTRACT(DECREMENT(m))(PRED(n)))
+// SUBTRACT(m)(n) = IS_ZERO(n)(m)(B(SUBTRACT(DECREMENT(m)))(PRED)(n))
+// SUBTRACT(m)(n) = C(IS_ZERO)(m)(n)(B(SUBTRACT(DECREMENT(m)))(PRED)(n))
+// SUBTRACT(m)(n) = S(C(IS_ZERO)(m))(B(SUBTRACT(DECREMENT(m)))(PRED))(n)
+// Then eliminate m
+// SUBTRACT(m)(n) = S(C(IS_ZERO)(m))(B(B(SUBTRACT)(DECREMENT)(m))(PRED))(n)
+// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(B(B(SUBTRACT)(DECREMENT)(m))(PRED))(n)
+// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(B(B)(B(SUBTRACT)(DECREMENT))(m)(PRED))(n)
+// SUBTRACT(m)(n) = B(S)(C(IS_ZERO))(m)(C(B(B)(B(SUBTRACT)(DECREMENT)))(PRED)(m))(n)
+// SUBTRACT(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(B(SUBTRACT)(DECREMENT)))(PRED))(m)(n)
+// Then eliminate the explicit self reference
+// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(B(y)(DECREMENT)))(PRED))(m)(n)
+// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B)(C(B)(DECREMENT)(y)))(PRED))(m)(n)
+// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(B(B))(C(B)(DECREMENT))(y))(PRED))(m)(n)
+// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(B(C)(B(B(B))(C(B)(DECREMENT)))(y)(PRED))(m)(n)
+// SUBTRACT_MAKER(y)(m)(n) = S(B(S)(C(IS_ZERO)))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED)(y))(m)(n)
+// SUBTRACT_MAKER(y)(m)(n) = B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED))(y)(m)(n)
+// SUBTRACT_MAKER = B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED))
+// SUBTRACT = Y(SUBTRACT_MAKER)
+let SUBTRACT = Y(B(S(B(S)(C(IS_ZERO))))(C(B(C)(B(B(B))(C(B)(DECREMENT))))(PRED)));
+
+console.log("\nSubtraction:");
+console.log("5 - 2 = " + toNumber(SUBTRACT(FIVE)(TWO)));  // 3
+console.log("1 - 3 = " + toNumber(SUBTRACT(ONE)(THREE)) + " (no negatives in this number system)");  // 0
+
+
+// TODO combinator version
+let MULTIPLY = (x) => (y) => IS_ZERO(y)(ZERO)(ADD(x)(MULTIPLY(x)(PRED(y))));
+
+console.log("\nMultiplication:");
+console.log("5 * 5 = " + toNumber(MULTIPLY(FIVE)(FIVE)));
+console.log("3 * 4 = " + toNumber(MULTIPLY(THREE)(FOUR)));
+console.log("2 * 0 = " + toNumber(MULTIPLY(TWO)(ZERO)));
+
+let PSI = B(B)(B); // f => g => x => y => f(g(x)(y))
+
+// LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))(TRUE)(FALSE)
+// LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))
+// LESS_THAN_OR_EQUAL(a)(b) = PSI(IS_ZERO)(SUBTRACT)
+let LESS_THAN_OR_EQUAL = PSI(IS_ZERO)(SUBTRACT);
+let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
+
+console.log("\nLess than or equal:");
+console.log("3 <= 2 = " + toBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // true
+console.log("4 <= 5 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
+console.log("0 <= 0 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
+
+let INVERT_BINARY_RELATION = PSI(NOT);
+let GREATER_THAN = INVERT_BINARY_RELATION(LESS_THAN_OR_EQUAL);
+let LESS_THAN = INVERT_BINARY_RELATION(GREATER_THAN_OR_EQUAL);
+
+console.log("\nGreater than:");
+console.log("3 > 2 = " + toBoolean(GREATER_THAN(THREE)(TWO)));  // true
+console.log("4 > 5 = " + toBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
+console.log("0 > 0 = " + toBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
+
+// TODO: combinator version
+let MOD_MAKER = f => m => n => LESS_THAN(m)(n)(m)
+(f(SUBTRACT(m)(n))(n));
+let MOD = Y(MOD_MAKER);
+
+console.log("\nModulus:");
+console.log("5 % 2 = " + toNumber(MOD(FIVE)(TWO)));
+console.log("5 % 3 = " + toNumber(MOD(FIVE)(THREE)));
+console.log("4 % 2 = " + toNumber(MOD(FOUR)(TWO)));
+
+// let DECIMAL2 = x => y => ADD(MULTIPLY(TEN)(x))(y);
+let DECIMAL2 = x => ADD(MULTIPLY(TEN)(x));
+let ONE_HUNDRED = MULTIPLY(TEN)(TEN);
+let DECIMAL3 = x => y => z =>
+  ADD(
+    ADD(
+      MULTIPLY(ONE_HUNDRED)(x)
+    )(
+      MULTIPLY(TEN)(y)
+    )
+  )(z);
+
+console.log("\nDecimal numbers:");
+console.log("Twenty-six: " + toNumber(DECIMAL2(TWO)(SIX)));
+console.log("Two hundred fifty-six: " + toNumber(DECIMAL3(TWO)(FIVE)(SIX))); // stack overflow if you go much higher (TODO: add trampoline)
+
+let CONS = V;
+let FIRST = T(TRUE);
+let REST = T(FALSE);
+let EMPTY = FALSE;
+let IS_EMPTY = list => list(_h => _t => FALSE)(TRUE);
+
+let RANGE = Y(f => m => n =>
+  LESS_THAN_OR_EQUAL(m)(n)
+    (CONS(m)(f(SUCC(m))(n)))
+    (EMPTY)
+);
+
+let FOLD = Y(f => lst => fn => acc =>
+  IS_EMPTY(lst)
+    (acc)
+    (fn(FIRST(lst))(f(REST(lst))(fn)(acc)))
+);
+
+// right fold: combiner :: element -> acc -> acc
+// let MAP = list => fn =>
+//  FOLD(list)(x => acc => CONS(fn(x))(acc))(EMPTY);
+
+
+let go = formatter => lst =>
+  lst === EMPTY
+    ? ""
+    : formatter(FIRST(lst)) +
+      (REST(lst) === EMPTY ? "" : ", " + go(formatter)(REST(lst)));
+
+let toArray = formatter => list => "[" + go(formatter)(list) + "]";
+
+console.log("\nLists:");
+console.log("1, 2, 3: " + toArray(toNumber)(
+  CONS(ONE)
+  (CONS(TWO)(CONS(THREE)(EMPTY)))));
+console.log("1 to 10: " + toArray(toNumber)(RANGE(ONE)(TEN)));
+console.log("Fold sum 1 to 4 = " + toNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
+// console.log("1, 2, 3, incremented = " + toArray(toNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
+// -> [2, 3, 4]
+
+// Exercises for the reader
+// 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
