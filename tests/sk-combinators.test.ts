@@ -34,7 +34,7 @@ describe("SK Combinators - Complete Test Suite", () => {
       // Basic combinators
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
-        value: "Testing basic combinators:",
+        value: "Basic combinators:",
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
@@ -85,20 +85,6 @@ describe("SK Combinators - Complete Test Suite", () => {
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
         value: "Five: 5",
-      });
-
-      // Number equality
-      expect(calls[i++][0]).toEqual({
-        type: ValueType.String,
-        value: "\nNumber equality:",
-      });
-      expect(calls[i++][0]).toEqual({
-        type: ValueType.String,
-        value: "5 == 5 = true",
-      });
-      expect(calls[i++][0]).toEqual({
-        type: ValueType.String,
-        value: "1 == 2 = false",
       });
 
       // Addition
@@ -234,7 +220,7 @@ describe("SK Combinators - Complete Test Suite", () => {
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
-        value: "1, 2, 3, incremented = [2, 3, 4]",
+        value: "Increment 1..3 = [2, 3, 4]",
       });
 
       // Strings

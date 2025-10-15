@@ -2,47 +2,41 @@
 // The foundation of computation using only two combinators
 
 // Basic combinators
-let S = x => y => z => x(z)(y(z));
-let K = x => y => x;
+let S = x => y => z => x(z)(y(z));   // Duplication and reordering
+let K = x => y => x;                 // Constants and ignoring
+let I = S(K)(K);                     // Identity
 
-// The identity combinator derived from S and K
-let I = S(K)(K);
-
-console.log("Testing basic combinators:");
+console.log("Basic combinators:");
 console.log("Identify combinator: 42 = " + I(42));            // Identity: returns 42
 console.log("Kestral combinator: K(10)(20) = " + K(10)(20));  // Constant: returns 10
 
-// More derived combinators (with their lambda forms)
-let B = S(K(S))(K);          // Bluebird:    x => y => z => x(y(z))     - composition
-let C = S(B(B)(S))(K(K));    // Cardinal:    x => y => z => x(z)(y)     - flip last two arguments
-let W = S(S)(K(I));          // Warbler:     x => y => x(y)(y)          - duplicate argument
-let M = S(I)(I);             // Mockingbird: x => x(x)                  - self-application
-let T = C(I);                // Thrush:      x => y => y(x)             - flip arguments
-let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)     - move last argument to front
-let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)     - move middle argument to front
-let B1 = B(B)(B);            // Blackbird:   x => y => z => w => x(y(b)(w))
-let E = B(B1);               // Eagle:       x => y => z => w => v => x(y)(z(w(v)))
-
+// General purpose derived combinators
+let B = S(K(S))(K);          // Bluebird:     x => y => z => x(y(z))              - composition
+let C = S(B(B)(S))(K(K));    // Cardinal:     x => y => z => x(z)(y)              - flip last two arguments
+let W = S(S)(K(I));          // Warbler:      x => y => x(y)(y)                   - duplicate argument
+let M = S(I)(I);             // Mockingbird:  x => x(x)                           - self-application
+let T = C(I);                // Thrush:       x => y => y(x)                      - flip arguments
+let V = B(C)(T);             // Vireo:        x => y => z => z(x)(y)              - move last argument to front
+let R = B(B)(T);             // Robin:        x => y => z => y(z)(x)              - move middle argument to front
+let Y = W(C)(S(B)(C(W(C)))); // Y Combinator: x => (y => x(y(y)))(y => x(y(y)));  - recursion (see also LxLx, UU, and many other equivalents)
+let B1 = B(B)(B);            // Blackbird:    x => y => z => w => x(y(b)(w))
+let E = B(B1);               // Eagle:        x => y => z => w => v => x(y)(z(w(v)))
 let R_STAR = C_STAR(C_STAR); // Robin once removed:     x => y => z => w => x(z)(w)(y)          - AKA R*
 let C_STAR = B(C);           // Cardinal once removed:  x => y => z => w => x(y)(w)(z)          - AKA C*
 let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v => x(y)(z)(v)(w)  - AKA C**
 
-
-// Boolean logic using combinators
+// Boolean logic
 let TRUE = K;      // given two things, choose the first
 let FALSE = K(I);  // given two things, choose the second
 let IF = I;
 
-let toBoolean = (x) => x(true)(false);
+let extractBoolean = V(true)(false); // helper function to make booleans human-readable
 
 let NOT = V(FALSE)(TRUE); // NOT = p => p(FALSE)(TRUE);
 
 console.log("\nBoolean logic:");
-console.log("NOT true = " + toBoolean(NOT(TRUE)));
-console.log("NOT false = " + toBoolean(NOT(FALSE)));
-
-// let AND = p => q => p(q)(FALSE); Vireo?
-// let OR = p => q => p(TRUE)(q);
+console.log("NOT true = " + extractBoolean(NOT(TRUE)));
+console.log("NOT false = " + extractBoolean(NOT(FALSE)));
 
 // Lazy evaluation test - M(M) would diverge with eager evaluation
 console.log("\nLazy evaluation test:");
@@ -67,31 +61,16 @@ let EIGHT = SUCC(SEVEN);
 let NINE  = SUCC(EIGHT);
 let TEN   = SUCC(NINE);
 
-// Convert Barendregt numeral to JavaScript number
-let toNumber = m => IS_ZERO(m)(0)(1 + toNumber(PRED(m)));
+let nativeIncrement = x => x + 1; // only used for printing to console
+
+// Convert Barendregt/Scott numeral to native number
+// let extractNumber = m => IS_ZERO(m)(0)(1 + toNumber(PRED(m)));
+let extractNumber = Y(B(S(C(IS_ZERO)(0)))(B(B(nativeIncrement))(C(B)(PRED))));
 
 console.log("\nBarendregt/Scott numerals:");
-console.log("One: " + toNumber(ZERO));   // 0
-console.log("Three: " + toNumber(THREE));  // 3
-console.log("Five: " + toNumber(FIVE));   // 5
-
-// Y combinator for recursion
-// let Y = f => (x => f(x(x)))(x => f(x(x)));
-let Y = W(C)(S(B)(C(W(C))));
-
-// TODO combinator version
-let NUMBER_EQUALS = x => y =>
-  IS_ZERO(x)
-    (IS_ZERO(y)
-       (TRUE)
-       (FALSE))
-    (IS_ZERO(y)
-       (FALSE)
-       (NUMBER_EQUALS(PRED(x))(PRED(y))));
-
-console.log("\nNumber equality:");
-console.log("5 == 5 = " + toBoolean(NUMBER_EQUALS(FIVE)(FIVE)));
-console.log("1 == 2 = " + toBoolean(NUMBER_EQUALS(ONE)(TWO)));
+console.log("One: " + extractNumber(ZERO));     // 0
+console.log("Three: " + extractNumber(THREE));  // 3
+console.log("Five: " + extractNumber(FIVE));    // 5
 
 // Addition
 // Starting from Lambda Calculus (more readable, way less metal)
@@ -118,25 +97,24 @@ console.log("1 == 2 = " + toBoolean(NUMBER_EQUALS(ONE)(TWO)));
 let ADD = Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED)));
 
 console.log("\nAddition:");
-console.log("2 + 3 = " + toNumber(ADD(TWO)(THREE)));  // 5
-console.log("4 + 5 = " + toNumber(ADD(FOUR)(FIVE)));  // 9
+console.log("2 + 3 = " + extractNumber(ADD(TWO)(THREE)));  // 5
+console.log("4 + 5 = " + extractNumber(ADD(FOUR)(FIVE)));  // 9
 
 // Subtraction
 // Same as ADD except with DECREMENT instead of SUCC, and wrapped in C to swap the params
 let SUBTRACT = C(Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(DECREMENT))))(C(S(K(I))(B))(PRED))));
 
 console.log("\nSubtraction:");
-console.log("5 - 2 = " + toNumber(SUBTRACT(FIVE)(TWO)));  // 3
-console.log("1 - 3 = " + toNumber(SUBTRACT(ONE)(THREE)) + " (no negatives in this number system)");  // 0
+console.log("5 - 2 = " + extractNumber(SUBTRACT(FIVE)(TWO)));  // 3
+console.log("1 - 3 = " + extractNumber(SUBTRACT(ONE)(THREE)) + " (no negatives in this number system)");  // 0
 
-
-// TODO combinator version
-let MULTIPLY = (x) => (y) => IS_ZERO(y)(ZERO)(ADD(x)(MULTIPLY(x)(PRED(y))));
+// let MULTIPLY = (x) => (y) => IS_ZERO(y)(ZERO)(ADD(x)(MULTIPLY(x)(PRED(y))));
+let MULTIPLY = C(S(B(B)(C(IS_ZERO)(ZERO)))(B(S(ADD))(B(C(MULTIPLY))(PRED))));
 
 console.log("\nMultiplication:");
-console.log("5 * 5 = " + toNumber(MULTIPLY(FIVE)(FIVE)));
-console.log("3 * 4 = " + toNumber(MULTIPLY(THREE)(FOUR)));
-console.log("2 * 0 = " + toNumber(MULTIPLY(TWO)(ZERO)));
+console.log("5 * 5 = " + extractNumber(MULTIPLY(FIVE)(FIVE)));
+console.log("3 * 4 = " + extractNumber(MULTIPLY(THREE)(FOUR)));
+console.log("2 * 0 = " + extractNumber(MULTIPLY(TWO)(ZERO)));
 
 // LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))(TRUE)(FALSE)
 // LESS_THAN_OR_EQUAL(a)(b) = IS_ZERO(SUBTRACT(a)(b))
@@ -145,46 +123,54 @@ let LESS_THAN_OR_EQUAL = B1(IS_ZERO)(SUBTRACT);
 let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
 
 console.log("\nLess than or equal:");
-console.log("3 <= 2 = " + toBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // true
-console.log("4 <= 5 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
-console.log("0 <= 0 = " + toBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
+console.log("3 <= 2 = " + extractBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // true
+console.log("4 <= 5 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
+console.log("0 <= 0 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
 
 let INVERT_BINARY_RELATION = B1(NOT);
 let GREATER_THAN = INVERT_BINARY_RELATION(LESS_THAN_OR_EQUAL);
 let LESS_THAN = INVERT_BINARY_RELATION(GREATER_THAN_OR_EQUAL);
 
 console.log("\nGreater than:");
-console.log("3 > 2 = " + toBoolean(GREATER_THAN(THREE)(TWO)));  // true
-console.log("4 > 5 = " + toBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
-console.log("0 > 0 = " + toBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
+console.log("3 > 2 = " + extractBoolean(GREATER_THAN(THREE)(TWO)));  // true
+console.log("4 > 5 = " + extractBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
+console.log("0 > 0 = " + extractBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
 
-// TODO: combinator version
-let MOD_MAKER = f => m => n => LESS_THAN(m)(n)(m)
-(f(SUBTRACT(m)(n))(n));
-let MOD = Y(MOD_MAKER);
+// let MOD = m => n => LESS_THAN(m)(n)(m)(MOD(SUBTRACT(m)(n))(n));
+// First eliminate n
+// let MOD = m => n => S(W(C_STAR(LESS_THAN))(m))(W(B(MOD)(SUBTRACT(m))))(n);
+// let MOD = m => S(W(C_STAR(LESS_THAN))(m))(W(B(MOD)(SUBTRACT(m))));
+// Then eliminate m
+// let MOD = m => S(B(S)(W(C_STAR(LESS_THAN))))(B(W)(B(B(MOD))(SUBTRACT)))(m);
+// let MOD = S(B(S)(W(C_STAR(LESS_THAN))))(B(W)(B(B(MOD))(SUBTRACT)));
+// Then eliminate the explicit self reference
+// let MOD_MAKER = self => S(B(S)(W(C_STAR(LESS_THAN))))(B(W)(B(B(self))(SUBTRACT)));
+// let MOD_MAKER = self => B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT)))(self);
+// let MOD_MAKER = B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT)));
+// let MOD = Y(MOD_MAKER);
+let MOD = Y(B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT))));
 
 console.log("\nModulus:");
-console.log("5 % 2 = " + toNumber(MOD(FIVE)(TWO)));
-console.log("5 % 3 = " + toNumber(MOD(FIVE)(THREE)));
-console.log("4 % 2 = " + toNumber(MOD(FOUR)(TWO)));
+console.log("5 % 2 = " + extractNumber(MOD(FIVE)(TWO)));
+console.log("5 % 3 = " + extractNumber(MOD(FIVE)(THREE)));
+console.log("4 % 2 = " + extractNumber(MOD(FOUR)(TWO)));
 
-// let DECIMAL2 = x => y => ADD(MULTIPLY(TEN)(x))(y);
-let DECIMAL2 = B(ADD)(MULTIPLY(TEN));
+let DECIMAL2 = B(ADD)(MULTIPLY(TEN)); // x => y => ADD(MULTIPLY(TEN)(x))(y);
 
-// let DECIMAL3 = x => y => z => ADD(MULTIPLY(ONE_HUNDRED)(DECIMAL2(y)(z))
 let ONE_HUNDRED = MULTIPLY(TEN)(TEN);
-let DECIMAL3 = C(E(B(ADD)(MULTIPLY(ONE_HUNDRED))))(DECIMAL2);
+let DECIMAL3 = C(E(B(ADD)(MULTIPLY(ONE_HUNDRED))))(DECIMAL2); // x => y => z => ADD(MULTIPLY(ONE_HUNDRED)(DECIMAL2(y)(z));
 
 console.log("\nDecimal numbers:");
-console.log("Twenty-six: " + toNumber(DECIMAL2(TWO)(SIX)));
-console.log("Two hundred fifty-six: " + toNumber(DECIMAL3(TWO)(FIVE)(SIX))); // stack overflow if you go much higher (TODO: add trampoline)
+console.log("Twenty-six: " + extractNumber(DECIMAL2(TWO)(SIX)));
+console.log("Two hundred fifty-six: " + extractNumber(DECIMAL3(TWO)(FIVE)(SIX))); // stack overflow if you go much higher (TODO: add trampoline)
 
-let CONS = V;
-let FIRST = T(TRUE);
-let REST = T(FALSE);
-let EMPTY = K(TRUE);
-let END = EMPTY; // Interchangeable, whichever is more readable
-let IS_EMPTY = list => list(_h => _t => FALSE);
+// lists
+let CONS = V;                  // Used to create a linked list
+let FIRST = T(TRUE);           // Gets the first element in a list
+let REST = T(FALSE);           // Gets everything in a list except the first element
+let EMPTY = K(TRUE);           // An empty list, as in [], also used to denote the end of a list
+let END = EMPTY;               // Interchangeable with EMPTY, whichever is more readable
+let IS_EMPTY = T(K(K(FALSE))); // let IS_EMPTY = list => list(x => y => FALSE);
 
 let RANGE = Y(f => m => n =>
   LESS_THAN_OR_EQUAL(m)(n)
@@ -215,24 +201,14 @@ let toArray = formatter => list =>
   )(formatter)(list) + "]";
 
 console.log("\nLists:");
-console.log("1, 2, 3: " + toArray(toNumber)(
+console.log("1, 2, 3: " + toArray(extractNumber)(
   CONS(ONE)
   (CONS(TWO)(CONS(THREE)(EMPTY)))));
-console.log("1..10: " + toArray(toNumber)(RANGE(ONE)(TEN)));
-console.log("Sum 1..4 = " + toNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
-console.log("1, 2, 3, incremented = " + toArray(toNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
-// -> [2, 3, 4]
+console.log("1..10: " + toArray(extractNumber)(RANGE(ONE)(TEN)));
+console.log("Sum 1..4 = " + extractNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
+console.log("Increment 1..3 = " + toArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 
-let LETTERS_LINKED_LIST =
-  CONS("a")(CONS("b")(CONS("c")(CONS("d")(CONS("e")(
-  CONS("f")(CONS("g")(CONS("h")(CONS("i")(CONS("j")(
-  CONS("k")(CONS("l")(CONS("m")(CONS("n")(CONS("o")(
-  CONS("p")(CONS("q")(CONS("r")(CONS("s")(CONS("t")(
-  CONS("u")(CONS("v")(CONS("w")(CONS("x")(CONS("y")(
-  CONS("z")(EMPTY))))))))))))))))))))))))));
-
-// ARRAY(n) expects n elements one-by-one, then returns a CONS list of them.
-// Usage: ARRAY(DECIMAL2(TWO)(SIX))("a")("b")...("z")
+// More ergonomic than `CONS("a")(CONS("b")(CONS("c"))...`
 let ARRAY =
   (Y(h => acc => x =>
     x === EMPTY
@@ -286,20 +262,20 @@ let CHAR_Z  = DECIMAL2(TWO)(SIX);   // 26
 let CHAR_0 = DECIMAL2(TWO)(SEVEN);
 let CHAR_1 = DECIMAL2(TWO)(EIGHT);
 let CHAR_2 = DECIMAL2(TWO)(NINE);
-let CHAR_3 = DECIMAL2(THREE)(ZERO);   // 30
-let CHAR_4 = DECIMAL2(THREE)(ONE);    // 31
-let CHAR_5 = DECIMAL2(THREE)(TWO);    // 32
-let CHAR_6 = DECIMAL2(THREE)(THREE);  // 33
-let CHAR_7 = DECIMAL2(THREE)(FOUR);   // 34
-let CHAR_8 = DECIMAL2(THREE)(FIVE);   // 35
-let CHAR_9 = DECIMAL2(THREE)(SIX);    // 36
+let CHAR_3 = DECIMAL2(THREE)(ZERO);
+let CHAR_4 = DECIMAL2(THREE)(ONE);
+let CHAR_5 = DECIMAL2(THREE)(TWO);
+let CHAR_6 = DECIMAL2(THREE)(THREE);
+let CHAR_7 = DECIMAL2(THREE)(FOUR);
+let CHAR_8 = DECIMAL2(THREE)(FIVE);
+let CHAR_9 = DECIMAL2(THREE)(SIX);
 
 let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
 let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
-let FIZZBUZZ = APPEND(FIZZ)(BUZZ);
+let FIZZBUZZ = CONCAT(FIZZ)(BUZZ);
 
-// right fold append
-let APPEND =
+// combine two lists
+let CONCAT =
   Y(f => xs => ys =>
     IS_EMPTY(xs)
       (ys)
@@ -323,7 +299,7 @@ let REVERSE =
   Y(f => xs =>
     IS_EMPTY(xs)
       (EMPTY)
-      (APPEND(f(REST(xs)))(CONS(FIRST(xs))(EMPTY))));
+      (CONCAT(f(REST(xs)))(CONS(FIRST(xs))(EMPTY))));
 
 let DIGITS_NUMERAL =
   CONS(CHAR_0)(CONS(CHAR_1)(CONS(CHAR_2)(CONS(CHAR_3)(CONS(CHAR_4)(
@@ -338,7 +314,7 @@ let NTH0 = Y(f => n => lst =>
 let NUMBER_TO_DIGIT_LIST = Y(rec => n =>
   IS_ZERO(DIVIDE(n)(TEN))
     (CONS(MOD(n)(TEN))(EMPTY))
-    (APPEND(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
+    (CONCAT(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
 
 let DIGIT_TO_NUMERAL = d => NTH0(d)(DIGITS_NUMERAL);
 
@@ -375,5 +351,3 @@ console.log(toLines(toString)(OUTPUT));
 
 // Exercises for the reader
 // 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
-
-
