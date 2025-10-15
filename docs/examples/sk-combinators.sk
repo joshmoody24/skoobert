@@ -13,13 +13,13 @@ console.log("Identify combinator: 42 = " + I(42));            // Identity: retur
 console.log("Kestral combinator: K(10)(20) = " + K(10)(20));  // Constant: returns 10
 
 // More derived combinators (with their lambda forms)
-let B = S(K(S))(K);          // Bluebird:    x => y => z => x(y(z)) - composition
-let C = S(B(B)(S))(K(K));    // Cardinal:    x => y => z => x(z)(y) - flip last two arguments
-let W = S(S)(K(I));          // Warbler:     x => y => x(y)(y)       - duplicate argument
-let M = S(I)(I);             // Mockingbird: x => x(x)           - self-application
-let T = C(I);                // Thrush:      x => y => y(x)           - flip arguments
-let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)    - move last argument to front
-let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)    - move middle argument to front
+let B = S(K(S))(K);          // Bluebird:    x => y => z => x(y(z))     - composition
+let C = S(B(B)(S))(K(K));    // Cardinal:    x => y => z => x(z)(y)     - flip last two arguments
+let W = S(S)(K(I));          // Warbler:     x => y => x(y)(y)          - duplicate argument
+let M = S(I)(I);             // Mockingbird: x => x(x)                  - self-application
+let T = C(I);                // Thrush:      x => y => y(x)             - flip arguments
+let V = B(C)(T);             // Vireo:       x => y => z => z(x)(y)     - move last argument to front
+let R = B(B)(T);             // Robin:       x => y => z => y(z)(x)     - move middle argument to front
 let B1 = B(B)(B);            // Blackbird:   x => y => z => w => x(y(b)(w))
 let E = B(B1);               // Eagle:       x => y => z => w => v => x(y)(z(w(v)))
 
@@ -39,7 +39,7 @@ let NOT = V(FALSE)(TRUE); // NOT = p => p(FALSE)(TRUE);
 
 console.log("\nBoolean logic:");
 console.log("NOT true = " + toBoolean(NOT(TRUE)));
-console.log("NOT false = " + toBoolean(NOT(TRUE)));
+console.log("NOT false = " + toBoolean(NOT(FALSE)));
 
 // let AND = p => q => p(q)(FALSE); Vireo?
 // let OR = p => q => p(TRUE)(q);
@@ -182,8 +182,8 @@ console.log("Two hundred fifty-six: " + toNumber(DECIMAL3(TWO)(FIVE)(SIX))); // 
 let CONS = V;
 let FIRST = T(TRUE);
 let REST = T(FALSE);
-let EMPTY = FALSE;
-let IS_EMPTY = list => list(_h => _t => FALSE)(TRUE);
+let EMPTY = K(TRUE);
+let IS_EMPTY = list => list(_h => _t => FALSE);
 
 let RANGE = Y(f => m => n =>
   LESS_THAN_OR_EQUAL(m)(n)
@@ -198,17 +198,20 @@ let FOLD = Y(f => lst => fn => acc =>
 );
 
 // right fold: combiner :: element -> acc -> acc
-// let MAP = list => fn =>
-//  FOLD(list)(x => acc => CONS(fn(x))(acc))(EMPTY);
+let MAP = list => f =>
+  FOLD(list)(x => acc => CONS(f(x))(acc))(EMPTY);
 
-
-let go = formatter => lst =>
-  lst === EMPTY
-    ? ""
-    : formatter(FIRST(lst)) +
-      (REST(lst) === EMPTY ? "" : ", " + go(formatter)(REST(lst)));
-
-let toArray = formatter => list => "[" + go(formatter)(list) + "]";
+let toArray = formatter => list =>
+  "[" + (
+    Y(go => formatter => lst =>
+      IS_EMPTY(lst)
+        ("")
+        (formatter(FIRST(lst)) +
+          (IS_EMPTY(REST(lst))
+            ("")
+            (", " + go(formatter)(REST(lst)))))
+    )
+  )(formatter)(list) + "]";
 
 console.log("\nLists:");
 console.log("1, 2, 3: " + toArray(toNumber)(
@@ -216,8 +219,159 @@ console.log("1, 2, 3: " + toArray(toNumber)(
   (CONS(TWO)(CONS(THREE)(EMPTY)))));
 console.log("1..10: " + toArray(toNumber)(RANGE(ONE)(TEN)));
 console.log("Sum 1..4 = " + toNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
-// console.log("1, 2, 3, incremented = " + toArray(toNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
+console.log("1, 2, 3, incremented = " + toArray(toNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 // -> [2, 3, 4]
+
+let LETTERS_LINKED_LIST =
+  CONS("a")(CONS("b")(CONS("c")(CONS("d")(CONS("e")(
+  CONS("f")(CONS("g")(CONS("h")(CONS("i")(CONS("j")(
+  CONS("k")(CONS("l")(CONS("m")(CONS("n")(CONS("o")(
+  CONS("p")(CONS("q")(CONS("r")(CONS("s")(CONS("t")(
+  CONS("u")(CONS("v")(CONS("w")(CONS("x")(CONS("y")(
+  CONS("z")(EMPTY))))))))))))))))))))))))));
+
+// ARRAY(n) expects n elements one-by-one, then returns a CONS list of them.
+// Usage: ARRAY(DECIMAL2(TWO)(SIX))("a")("b")...("z")
+let ARRAY = n =>
+  (Y(h => n => acc =>
+    IS_ZERO(n)
+      (acc(EMPTY))                                // done: apply the builder to EMPTY to materialize the list
+      (x => h(PRED(n))(t => acc(CONS(x)(t))) )    // collect x by composing onto the builder
+  ))(n)(t => t);                                   // start with identity builder
+
+let LETTERS =
+  ARRAY(DECIMAL2(THREE)(SIX))
+  ("a")("b")("c")("d")("e")("f")("g")("h")("i")("j")
+  ("k")("l")("m")("n")("o")("p")("q")("r")("s")("t")
+  ("u")("v")("w")("x")("y")("z")
+  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9");
+
+let NTH = Y(f => n => lst =>
+  IS_ZERO(n)
+    (FIRST(lst))
+    (f(PRED(n))(REST(lst))));
+
+let toString = Y(f => lst =>
+  IS_EMPTY(lst)
+    ("")
+    (NTH(PRED(FIRST(lst)))(LETTERS) + f(REST(lst))));
+
+let CHAR_A  = ONE;
+let CHAR_B  = TWO;
+let CHAR_C  = THREE;
+let CHAR_D  = FOUR;
+let CHAR_E  = FIVE;
+let CHAR_F  = SIX;
+let CHAR_G  = SEVEN;
+let CHAR_H  = EIGHT;
+let CHAR_I  = NINE;
+let CHAR_J  = TEN;
+let CHAR_K  = DECIMAL2(ONE)(ONE);   // 11
+let CHAR_L  = DECIMAL2(ONE)(TWO);   // 12
+let CHAR_M  = DECIMAL2(ONE)(THREE); // 13
+let CHAR_N  = DECIMAL2(ONE)(FOUR);  // 14
+let CHAR_O  = DECIMAL2(ONE)(FIVE);  // 15
+let CHAR_P  = DECIMAL2(ONE)(SIX);   // 16
+let CHAR_Q  = DECIMAL2(ONE)(SEVEN); // 17
+let CHAR_R  = DECIMAL2(ONE)(EIGHT); // 18
+let CHAR_S  = DECIMAL2(ONE)(NINE);  // 19
+let CHAR_T  = DECIMAL2(TWO)(ZERO);  // 20
+let CHAR_U  = DECIMAL2(TWO)(ONE);   // 21
+let CHAR_V  = DECIMAL2(TWO)(TWO);   // 22
+let CHAR_W  = DECIMAL2(TWO)(THREE); // 23
+let CHAR_X  = DECIMAL2(TWO)(FOUR);  // 24
+let CHAR_Y  = DECIMAL2(TWO)(FIVE);  // 25
+let CHAR_Z  = DECIMAL2(TWO)(SIX);   // 26
+let CHAR_0 = DECIMAL2(TWO)(SEVEN);
+let CHAR_1 = DECIMAL2(TWO)(EIGHT);
+let CHAR_2 = DECIMAL2(TWO)(NINE);
+let CHAR_3 = DECIMAL2(THREE)(ZERO);   // 30
+let CHAR_4 = DECIMAL2(THREE)(ONE);    // 31
+let CHAR_5 = DECIMAL2(THREE)(TWO);    // 32
+let CHAR_6 = DECIMAL2(THREE)(THREE);  // 33
+let CHAR_7 = DECIMAL2(THREE)(FOUR);   // 34
+let CHAR_8 = DECIMAL2(THREE)(FIVE);   // 35
+let CHAR_9 = DECIMAL2(THREE)(SIX);    // 36
+
+let FIZZ = ARRAY(FOUR)(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z);
+let BUZZ = ARRAY(FOUR)(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z);
+let FIZZBUZZ = APPEND(FIZZ)(BUZZ);
+
+// right fold append
+let APPEND =
+  Y(f => xs => ys =>
+    IS_EMPTY(xs)
+      (ys)
+      (CONS(FIRST(xs))(f(REST(xs))(ys))));
+
+console.log("\nStrings:");
+console.log("The string \"fizz\": " + toString(FIZZ));
+console.log("The string \"buzz\": " + toString(BUZZ));
+console.log("The string \"fizz\" + \"buzz\": " + toString(FIZZBUZZ));
+
+// DIVIDE m n = floor(m / n); clamp divide-by-zero to 0
+let DIVIDE =
+  Y(f => m => n =>
+    IS_ZERO(n)
+      (ZERO)                                   // safe clamp
+      (LESS_THAN(m)(n)
+        (ZERO)                                 // m < n  => 0
+        (SUCC(f(SUBTRACT(m)(n))(n)))));        // else 1 + div(m-n, n)
+
+let REVERSE =
+  Y(f => xs =>
+    IS_EMPTY(xs)
+      (EMPTY)
+      (APPEND(f(REST(xs)))(CONS(FIRST(xs))(EMPTY))));
+
+let DIGITS_NUMERAL =
+  CONS(CHAR_0)(CONS(CHAR_1)(CONS(CHAR_2)(CONS(CHAR_3)(CONS(CHAR_4)(
+  CONS(CHAR_5)(CONS(CHAR_6)(CONS(CHAR_7)(CONS(CHAR_8)(CONS(CHAR_9)(EMPTY))))))))));
+
+// TODO - derive from nth
+let NTH0 = Y(f => n => lst =>
+  IS_ZERO(n)
+    (FIRST(lst))
+    (f(PRED(n))(REST(lst))));
+
+let NUMBER_TO_DIGIT_LIST = Y(rec => n =>
+  IS_ZERO(DIVIDE(n)(TEN))
+    (CONS(MOD(n)(TEN))(EMPTY))
+    (APPEND(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
+
+let DIGIT_TO_NUMERAL = d => NTH0(d)(DIGITS_NUMERAL);
+
+let NUMBER_TO_STRING =
+  n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(DIGIT_TO_NUMERAL(d))(acc))(EMPTY);
+
+console.log("Seventy-eight as a string: " + toString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
+
+let toLines = Y(go => formatter => lst =>
+      IS_EMPTY(lst)
+        ("")
+        (formatter(FIRST(lst)) +
+          (IS_EMPTY(REST(lst))
+            ("")
+            ("\n" + go(formatter)(REST(lst)))))
+    );
+
+let FIFTEEN = DECIMAL2(ONE)(FIVE);
+
+console.log("\n=== THE GRAND FINALE ===");
+console.log("\nFizzBuzz:");
+
+let OUTPUT = MAP(RANGE(ONE)(ONE_HUNDRED))(n => IF(
+  IS_ZERO(MOD(n)(FIFTEEN))
+  	(FIZZBUZZ)
+  	(IF(IS_ZERO(MOD(n)(THREE))
+        (FIZZ)
+        (IF(IS_ZERO(MOD(n)(FIVE))
+            (BUZZ)
+            (NUMBER_TO_STRING(n))
+            ))))));
+
+console.log(toLines(toString)(OUTPUT));
 
 // Exercises for the reader
 // 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
+

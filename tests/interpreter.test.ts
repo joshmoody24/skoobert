@@ -36,7 +36,7 @@ describe("interpreter - basic evaluation", () => {
     interpret(parse("console.log(10 / 3);"), { onOutput: mockOutput });
     expect(mockOutput).toHaveBeenCalledWith({
       type: ValueType.Number,
-      value: 10 / 3,  // 3.333...
+      value: 10 / 3, // 3.333...
     });
   });
 
