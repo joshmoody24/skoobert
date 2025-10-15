@@ -183,6 +183,7 @@ let CONS = V;
 let FIRST = T(TRUE);
 let REST = T(FALSE);
 let EMPTY = K(TRUE);
+let END = EMPTY; // Interchangeable, whichever is more readable
 let IS_EMPTY = list => list(_h => _t => FALSE);
 
 let RANGE = Y(f => m => n =>
@@ -232,19 +233,19 @@ let LETTERS_LINKED_LIST =
 
 // ARRAY(n) expects n elements one-by-one, then returns a CONS list of them.
 // Usage: ARRAY(DECIMAL2(TWO)(SIX))("a")("b")...("z")
-let ARRAY = n =>
-  (Y(h => n => acc =>
-    IS_ZERO(n)
-      (acc(EMPTY))                                // done: apply the builder to EMPTY to materialize the list
-      (x => h(PRED(n))(t => acc(CONS(x)(t))) )    // collect x by composing onto the builder
-  ))(n)(t => t);                                   // start with identity builder
+let ARRAY =
+  (Y(h => acc => x =>
+    x === EMPTY
+      ? acc(EMPTY)                      // finalize with EMPTY
+      : h(t => acc(CONS(x)(t)))))       // keep composing CONS(x)
+  (t => t);                         // start with identity builder
 
 let LETTERS =
-  ARRAY(DECIMAL2(THREE)(SIX))
+  ARRAY
   ("a")("b")("c")("d")("e")("f")("g")("h")("i")("j")
   ("k")("l")("m")("n")("o")("p")("q")("r")("s")("t")
   ("u")("v")("w")("x")("y")("z")
-  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9");
+  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9")(END);
 
 let NTH = Y(f => n => lst =>
   IS_ZERO(n)
@@ -293,8 +294,8 @@ let CHAR_7 = DECIMAL2(THREE)(FOUR);   // 34
 let CHAR_8 = DECIMAL2(THREE)(FIVE);   // 35
 let CHAR_9 = DECIMAL2(THREE)(SIX);    // 36
 
-let FIZZ = ARRAY(FOUR)(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z);
-let BUZZ = ARRAY(FOUR)(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z);
+let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
+let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
 let FIZZBUZZ = APPEND(FIZZ)(BUZZ);
 
 // right fold append
@@ -374,4 +375,5 @@ console.log(toLines(toString)(OUTPUT));
 
 // Exercises for the reader
 // 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
+
 
