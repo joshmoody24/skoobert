@@ -1,0 +1,165 @@
+let S = x => y => z => x(z)(y(z));
+let K = x => y => x;
+let I = S(K)(K);
+
+let B = S(K(S))(K);
+let C = S(B(B)(S))(K(K));
+let W = S(S)(K(I));
+let M = S(I)(I);
+let T = C(I);
+let V = B(C)(T);
+let R = B(B)(T);
+let Y = W(C)(S(B)(C(W(C))));
+let B1 = B(B)(B);
+let E = B(B1);
+let C_STAR = B(C);
+let C_STAR_STAR = B(C_STAR);
+
+let TRUE = K;
+let FALSE = K(I);
+
+let NOT = V(FALSE)(TRUE);
+
+let ZERO = I;
+let IS_ZERO = T(TRUE);
+let SUCC = V(FALSE);
+let PRED = T(FALSE);
+let DECREMENT = m => IS_ZERO(m)(m)(PRED(m));
+
+let ONE   = SUCC(ZERO);
+let TWO   = SUCC(ONE);
+let THREE = SUCC(TWO);
+let FOUR  = SUCC(THREE);
+let FIVE  = SUCC(FOUR);
+let SIX   = SUCC(FIVE);
+let SEVEN = SUCC(SIX);
+let EIGHT = SUCC(SEVEN);
+let NINE  = SUCC(EIGHT);
+let TEN   = SUCC(NINE);
+
+let ADD = Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(SUCC))))(C(S(K(I))(B))(PRED)));
+let SUBTRACT = C(Y(B(S(B(S)(C_STAR_STAR(B)(C)(B(B(B))(IS_ZERO))(DECREMENT))))(C(S(K(I))(B))(PRED))));
+let MULTIPLY = C(S(B(B)(C(IS_ZERO)(ZERO)))(B(S(ADD))(B(C(MULTIPLY))(PRED))));
+
+let LESS_THAN_OR_EQUAL = B1(IS_ZERO)(SUBTRACT);
+let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
+let GREATER_THAN = B1(NOT)(LESS_THAN_OR_EQUAL);
+let LESS_THAN = B1(NOT)(GREATER_THAN_OR_EQUAL);
+
+let RECURSE_SUB = B(B(W))(C(B(B)(B))(SUBTRACT));
+let MOD = Y(B(S(B(S)(W(C_STAR(LESS_THAN)))))(RECURSE_SUB));
+let DIVIDE = Y(B(B(S(C(IS_ZERO)(ZERO))))(B(S(B(S)(C(B(C)(LESS_THAN))(ZERO))))(B(B(B(SUCC)))(RECURSE_SUB))));
+
+let DECIMAL2 = B(ADD)(MULTIPLY(TEN));
+let ONE_HUNDRED = MULTIPLY(TEN)(TEN);
+let DECIMAL3 = C(E(B(ADD)(MULTIPLY(ONE_HUNDRED))))(DECIMAL2);
+
+let CONS = V;
+let FIRST = T(TRUE);
+let REST = T(FALSE);
+let EMPTY = K(TRUE);
+let END = EMPTY;
+let IS_EMPTY = T(K(K(FALSE)));
+
+let NTH = Y(B(S(B(S)(B(C(IS_ZERO))(FIRST))))(C(B(C)(B(B(B))(C(B)(REST))))(PRED)));
+let CONCAT = B(T(CONS))(FOLD);
+let REVERSE = Y(B(S(C(IS_EMPTY)(EMPTY)))(C(B(S)(B(B(CONCAT))(C(B)(REST))))(C(B(CONS)(FIRST))(EMPTY))));
+let RANGE = Y(C(B(C)(B(B(C))(B(S(B(S)(LESS_THAN_OR_EQUAL)))(B(S(B(B)(CONS)))(C(B)(SUCC))))))(EMPTY));
+let FOLD = Y(B(S(B(B)(B(S)(IS_EMPTY))))(B(S(B(S)(C(B(B(B))(C(B)(FIRST))))))(C(B)(REST))));
+let MAP = C(B(C)(C(B(B)(FOLD))(B(CONS))))(EMPTY);
+
+let renderList = fmt => sep => xs =>
+  IS_EMPTY(xs)
+    ("")
+    (fmt(FIRST(xs)) +
+      (IS_EMPTY(REST(xs))
+        ("")
+        (sep + renderList(fmt)(sep)(REST(xs)))));
+
+let showArray = fmt => list => "[" + renderList(fmt)(", ")(list) + "]";
+let showLines = fmt => list => renderList(fmt)("\n")(list);
+
+let ARRAY = Y(B(S(B(S)(C(B(C(IS_EMPTY)))(END))))(C(B(B)(B))(C(B(B)(B))(CONS))))(I);
+
+let CHAR_A  = ONE;
+let CHAR_B  = TWO;
+let CHAR_C  = THREE;
+let CHAR_D  = FOUR;
+let CHAR_E  = FIVE;
+let CHAR_F  = SIX;
+let CHAR_G  = SEVEN;
+let CHAR_H  = EIGHT;
+let CHAR_I  = NINE;
+let CHAR_J  = TEN;
+let CHAR_K  = DECIMAL2(ONE)(ONE);
+let CHAR_L  = DECIMAL2(ONE)(TWO);
+let CHAR_M  = DECIMAL2(ONE)(THREE);
+let CHAR_N  = DECIMAL2(ONE)(FOUR);
+let CHAR_O  = DECIMAL2(ONE)(FIVE);
+let CHAR_P  = DECIMAL2(ONE)(SIX);
+let CHAR_Q  = DECIMAL2(ONE)(SEVEN);
+let CHAR_R  = DECIMAL2(ONE)(EIGHT);
+let CHAR_S  = DECIMAL2(ONE)(NINE);
+let CHAR_T  = DECIMAL2(TWO)(ZERO);
+let CHAR_U  = DECIMAL2(TWO)(ONE);
+let CHAR_V  = DECIMAL2(TWO)(TWO);
+let CHAR_W  = DECIMAL2(TWO)(THREE);
+let CHAR_X  = DECIMAL2(TWO)(FOUR);
+let CHAR_Y  = DECIMAL2(TWO)(FIVE);
+let CHAR_Z  = DECIMAL2(TWO)(SIX);
+let CHAR_0 = DECIMAL2(TWO)(SEVEN);
+let CHAR_1 = DECIMAL2(TWO)(EIGHT);
+let CHAR_2 = DECIMAL2(TWO)(NINE);
+let CHAR_3 = DECIMAL2(THREE)(ZERO);
+let CHAR_4 = DECIMAL2(THREE)(ONE);
+let CHAR_5 = DECIMAL2(THREE)(TWO);
+let CHAR_6 = DECIMAL2(THREE)(THREE);
+let CHAR_7 = DECIMAL2(THREE)(FOUR);
+let CHAR_8 = DECIMAL2(THREE)(FIVE);
+let CHAR_9 = DECIMAL2(THREE)(SIX);
+
+let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
+let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
+let FIZZBUZZ = CONCAT(FIZZ)(BUZZ);
+
+let array =
+  (Y(h => acc => x =>
+    x === END
+      ? acc(END)
+      : h(t => acc(CONS(x)(t)))))
+  (I);
+
+let letters =
+  array
+  ("a")("b")("c")("d")("e")("f")("g")("h")("i")("j")
+  ("k")("l")("m")("n")("o")("p")("q")("r")("s")("t")
+  ("u")("v")("w")("x")("y")("z")
+  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9")(END);
+
+let extractString = Y(f => lst =>
+  IS_EMPTY(lst)
+    ("")
+    (NTH(letters)(PRED(FIRST(lst))) + f(REST(lst)))
+);
+
+let DIGITS_NUMERAL = ARRAY
+	(CHAR_0)(CHAR_1)(CHAR_2)
+	(CHAR_3)(CHAR_4)(CHAR_5)
+	(CHAR_6)(CHAR_7)(CHAR_8)
+	(CHAR_9)(END);
+
+let NUMBER_TO_DIGIT_LIST = S(B(S(B(S)(IS_ZERO))(B(CONCAT)(NUMBER_TO_DIGIT_LIST)))(C(DIVIDE)(TEN)))(C(B(CONS)(C(MOD)(TEN)))(EMPTY));
+let NUMBER_TO_STRING = S(C(B(FOLD)(NUMBER_TO_DIGIT_LIST))(B(CONS)(NTH(DIGITS_NUMERAL))))(B(T(EMPTY))(K(I)));
+
+let FIFTEEN = DECIMAL2(ONE)(FIVE);
+
+console.log("\nFizzBuzz:");
+
+let FIZZBUZZ_RESULT = MAP(RANGE(ONE)(ONE_HUNDRED))
+(S(B(S(C(R(FIZZBUZZ))(FIFTEEN)))(
+  B(S(C(R(FIZZ))(THREE)))(
+    B(C(C(R(BUZZ))(FIVE)))
+      (NUMBER_TO_STRING))))
+    (B(B(IS_ZERO))(MOD)));
+
+console.log(showLines(extractString)(FIZZBUZZ_RESULT));

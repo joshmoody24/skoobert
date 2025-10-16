@@ -121,11 +121,10 @@ let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
 console.log("\nLess than or equal:");
 console.log("3 <= 2 = " + extractBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // false
 console.log("4 <= 5 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // true
-console.log("0 <= 0 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // true
+console.log("0 <= 0 = " + extractBoolean(LESS_THAN_OR_EQUAL(ZERO)(ZERO)));  // true
 
-let INVERT_BINARY_RELATION = B1(NOT);
-let GREATER_THAN = INVERT_BINARY_RELATION(LESS_THAN_OR_EQUAL);
-let LESS_THAN = INVERT_BINARY_RELATION(GREATER_THAN_OR_EQUAL);
+let GREATER_THAN = B1(NOT)(LESS_THAN_OR_EQUAL);
+let LESS_THAN = B1(NOT)(GREATER_THAN_OR_EQUAL);
 
 console.log("\nGreater than:");
 console.log("3 > 2 = " + extractBoolean(GREATER_THAN(THREE)(TWO)));  // true
@@ -152,6 +151,7 @@ let RECURSE_SUB = B(B(W))(C(B(B)(B))(SUBTRACT));
 let MOD = Y(B(S(B(S)(W(C_STAR(LESS_THAN)))))(RECURSE_SUB));
 
 console.log("\nModulus:");
+
 console.log("5 % 2 = " + extractNumber(MOD(FIVE)(TWO)));
 console.log("5 % 3 = " + extractNumber(MOD(FIVE)(THREE)));
 console.log("4 % 2 = " + extractNumber(MOD(FOUR)(TWO)));
@@ -164,8 +164,8 @@ console.log("4 % 2 = " + extractNumber(MOD(FOUR)(TWO)));
 //       (LESS_THAN(m)(n)
 //         (ZERO)
 //         (SUCC(f(SUBTRACT(m)(n))(n)))));
-let DIVIDE =
-  Y(B(B(S(C(IS_ZERO)(ZERO))))(B(S(B(S)(C(B(C)(LESS_THAN))(ZERO))))(B(B(B(SUCC)))(RECURSE_SUB))));
+let DIVIDE = Y(B(B(S(C(IS_ZERO)(ZERO))))(B(S(B(S)(C(B(C)(LESS_THAN))(ZERO))))(B(B(B(SUCC)))(RECURSE_SUB))));
+
 console.log("\nDivision:");
 console.log("4 / 2 = " + extractNumber(DIVIDE(FOUR)(TWO)));    // 2
 console.log("5 / 3 = " + extractNumber(DIVIDE(FIVE)(THREE)));  // 1
