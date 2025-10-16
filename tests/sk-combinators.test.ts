@@ -212,7 +212,7 @@ describe("SK Combinators - Complete Test Suite", () => {
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
-        value: "First element in [1, 2]: 1",
+        value: "Second element in [1, 2]: 2",
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,

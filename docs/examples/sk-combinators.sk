@@ -172,11 +172,12 @@ let EMPTY = K(TRUE);           // An empty list, as in [], also used to denote t
 let END = EMPTY;               // Interchangeable with EMPTY, whichever is more readable
 let IS_EMPTY = T(K(K(FALSE))); // let IS_EMPTY = list => list(x => y => FALSE);
 
-// 0-based
-let NTH = Y(f => lst => n =>
-  IS_ZERO(n)
-    (FIRST(lst))
-    (f(REST(lst))(PRED(n))));
+// 0-based list index access
+// let NTH = lst => n =>
+//   IS_ZERO(n)
+//    (FIRST(lst))
+//    (NTH(REST(lst))(PRED(n)));
+let NTH = Y(B(S(B(S)(B(C(IS_ZERO))(FIRST))))(C(B(C)(B(B(B))(C(B)(REST))))(PRED)));
 
 //let RANGE = Y(f => m => n =>
 //  LESS_THAN_OR_EQUAL(m)(n)
@@ -209,8 +210,8 @@ let extractArray = formatter => list => "[" + (commaSeparated)(formatter)(list) 
 
 console.log("\nLists:");
 console.log("[1, 2, 3]: " + extractArray(extractNumber)(CONS(ONE)(CONS(TWO)(CONS(THREE)(END)))));
-console.log("First element in [1, 2]: " + extractNumber(
-  NTH(CONS(ONE)(CONS(TWO)(END)))(ZERO)
+console.log("Second element in [1, 2]: " + extractNumber(
+  NTH(CONS(ONE)(CONS(TWO)(END)))(ONE)
 ));
 console.log("1..10: " + extractArray(extractNumber)(RANGE(ONE)(TEN)));
 console.log("Sum 1..4 = " + extractNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
@@ -264,12 +265,8 @@ let CHAR_7 = DECIMAL2(THREE)(FOUR);
 let CHAR_8 = DECIMAL2(THREE)(FIVE);
 let CHAR_9 = DECIMAL2(THREE)(SIX);
 
-// combine two lists
-let CONCAT =
-  Y(f => xs => ys =>
-    IS_EMPTY(xs)
-      (ys)
-      (CONS(FIRST(xs))(f(REST(xs))(ys))));
+// let CONCAT = xs => ys => (FOLD(xs))(CONS)(ys);
+let CONCAT = B(T(CONS))(FOLD);
 
 let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
 let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
