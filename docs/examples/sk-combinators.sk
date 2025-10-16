@@ -338,14 +338,11 @@ let DIGITS_NUMERAL = ARRAY
 //     (CONCAT(NUMBER_TO_DIGIT_LIST(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY)));
 // Notice the repeated forms `DIVIDE(n)(TEN)` and `(CONS(MOD(n)(TEN))(EMPTY))`.
 // Extracting them into variables may make derivation easier.
-let NUMBER_TO_DIGIT_LIST =
-  S(B(S(B(S)(IS_ZERO))
-    (B(CONCAT)(NUMBER_TO_DIGIT_LIST)))(C(DIVIDE)(TEN)))(C(B(CONS)(C(MOD)(TEN)))(EMPTY));
+let NUMBER_TO_DIGIT_LIST = S(B(S(B(S)(IS_ZERO))(B(CONCAT)(NUMBER_TO_DIGIT_LIST)))(C(DIVIDE)(TEN)))(C(B(CONS)(C(MOD)(TEN)))(EMPTY));
 
-let DIGIT_TO_NUMERAL = NTH(DIGITS_NUMERAL);
-
-let NUMBER_TO_STRING =
-  n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(DIGIT_TO_NUMERAL(d))(acc))(EMPTY);
+// let NUMBER_TO_STRING =
+//   n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(NTH(DIGITS_NUMERAL)(d))(acc))(EMPTY);
+let NUMBER_TO_STRING = S(C(B(FOLD)(NUMBER_TO_DIGIT_LIST))(B(CONS)(NTH(DIGITS_NUMERAL))))(B(T(EMPTY))(K(I)));
 
 console.log("Seventy-eight as a string: " + extractString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
 
