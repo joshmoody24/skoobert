@@ -148,12 +148,32 @@ console.log("0 > 0 = " + extractBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
 // let MOD_MAKER = self => B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT)))(self);
 // let MOD_MAKER = B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT)));
 // let MOD = Y(MOD_MAKER);
-let MOD = Y(B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT))));
+
+// RECURSE_SUB is a common piece of logic shared by DIVIDE, there it is extracted into its own variable.
+// This was discovered after deriving both of them from scratch.
+// There is probably some deep elegance here that is lost on me.
+let RECURSE_SUB = B(B(W))(C(B(B)(B))(SUBTRACT));
+let MOD = Y(B(S(B(S)(W(C_STAR(LESS_THAN)))))(RECURSE_SUB));
 
 console.log("\nModulus:");
 console.log("5 % 2 = " + extractNumber(MOD(FIVE)(TWO)));
 console.log("5 % 3 = " + extractNumber(MOD(FIVE)(THREE)));
 console.log("4 % 2 = " + extractNumber(MOD(FOUR)(TWO)));
+
+// DIVIDE m n = floor(m / n); clamp divide-by-zero to 0
+// let DIVIDE =
+//   Y(f => m => n =>
+//     IS_ZERO(n)
+//       (ZERO)
+//       (LESS_THAN(m)(n)
+//         (ZERO)
+//         (SUCC(f(SUBTRACT(m)(n))(n)))));
+let DIVIDE =
+  Y(B(B(S(C(IS_ZERO)(ZERO))))(B(S(B(S)(C(B(C)(LESS_THAN))(ZERO))))(B(B(B(SUCC)))(RECURSE_SUB))));
+console.log("\nDivision:");
+console.log("4 / 2 = " + extractNumber(DIVIDE(FOUR)(TWO)));    // 2
+console.log("5 / 3 = " + extractNumber(DIVIDE(FIVE)(THREE)));  // 1
+console.log("3 / 0 = " + extractNumber(DIVIDE(THREE)(ZERO)));  // 0
 
 let DECIMAL2 = B(ADD)(MULTIPLY(TEN)); // x => y => ADD(MULTIPLY(TEN)(x))(y);
 
@@ -305,15 +325,6 @@ console.log("\nStrings:");
 console.log("The string \"fizz\": " + extractString(FIZZ));
 console.log("The string \"buzz\": " + extractString(BUZZ));
 console.log("The string \"fizz\" + \"buzz\": " + extractString(FIZZBUZZ));
-
-// DIVIDE m n = floor(m / n); clamp divide-by-zero to 0
-let DIVIDE =
-  Y(f => m => n =>
-    IS_ZERO(n)
-      (ZERO)                                   // safe clamp
-      (LESS_THAN(m)(n)
-        (ZERO)                                 // m < n  => 0
-        (SUCC(f(SUBTRACT(m)(n))(n)))));        // else 1 + div(m-n, n)
 
 let DIGITS_NUMERAL = ARRAY
 	(CHAR_0)(CHAR_1)(CHAR_2)

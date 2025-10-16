@@ -187,6 +187,24 @@ describe("SK Combinators - Complete Test Suite", () => {
         value: "4 % 2 = 0",
       });
 
+      // Division
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
+        value: "\nDivision:",
+      });
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
+        value: "4 / 2 = 2",
+      });
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
+        value: "5 / 3 = 1",
+      });
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
+        value: "3 / 0 = 0",
+      });
+
       // Decimal numbers
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
