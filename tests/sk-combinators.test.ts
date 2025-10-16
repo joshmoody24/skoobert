@@ -14,7 +14,7 @@ describe("SK Combinators - Complete Test Suite", () => {
 
       // Read the actual sk-combinators.sk file content
       const program = readFileSync(
-        resolve("docs/examples/combinatory-logic.sk"),
+        resolve("docs/examples/sk-fizzbuzz-annotated.sk"),
         "utf-8"
       );
 
