@@ -189,25 +189,25 @@ let FOLD = Y(B(S(B(B)(B(S)(IS_EMPTY))))(B(S(B(S)(C(B(B(B))(C(B)(FIRST))))))(C(B)
 // let MAP = lst => f => FOLD(lst)(x => acc => CONS(f(x))(acc))(EMPTY);
 let MAP = C(B(C)(C(B(B)(FOLD))(B(CONS))))(EMPTY);
 
-let toArray = formatter => list =>
-  "[" + (
-    Y(go => formatter => lst =>
+// Not going to bother making this point-free,
+// since it's just for printing to the console.
+let commaSeparated = formatter => lst =>
       IS_EMPTY(lst)
         ("")
         (formatter(FIRST(lst)) +
           (IS_EMPTY(REST(lst))
             ("")
-            (", " + go(formatter)(REST(lst)))))
-    )
-  )(formatter)(list) + "]";
+            (", " + commaSeparated(formatter)(REST(lst)))));
+
+let extractArray = formatter => list => "[" + (commaSeparated)(formatter)(list) + "]";
 
 console.log("\nLists:");
-console.log("1, 2, 3: " + toArray(extractNumber)(
+console.log("1, 2, 3: " + extractArray(extractNumber)(
   CONS(ONE)
   (CONS(TWO)(CONS(THREE)(EMPTY)))));
-console.log("1..10: " + toArray(extractNumber)(RANGE(ONE)(TEN)));
+console.log("1..10: " + extractArray(extractNumber)(RANGE(ONE)(TEN)));
 console.log("Sum 1..4 = " + extractNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
-console.log("Increment 1..3 = " + toArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
+console.log("Increment 1..3 = " + extractArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 
 // More ergonomic than `CONS("a")(CONS("b")(CONS("c"))...`
 let ARRAY =
