@@ -332,14 +332,15 @@ let NUMBER_TO_STRING =
 
 console.log("Seventy-eight as a string: " + extractString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
 
-let toLines = Y(go => formatter => lst =>
+// Converts a list to a string with one element per line
+// Only used for printing to the console
+let toLines = formatter => lst =>
       IS_EMPTY(lst)
         ("")
         (formatter(FIRST(lst)) +
           (IS_EMPTY(REST(lst))
             ("")
-            ("\n" + go(formatter)(REST(lst)))))
-    );
+            ("\n" + toLines(formatter)(REST(lst)))));
 
 let FIFTEEN = DECIMAL2(ONE)(FIVE);
 
