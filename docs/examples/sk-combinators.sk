@@ -288,16 +288,16 @@ let letters =
   ("u")("v")("w")("x")("y")("z")
   ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9")(END);
 
-let toString = Y(f => lst =>
+let extractString = Y(f => lst =>
   IS_EMPTY(lst)
     ("")
     (NTH(letters)(PRED(FIRST(lst))) + f(REST(lst)))
 );
 
 console.log("\nStrings:");
-console.log("The string \"fizz\": " + toString(FIZZ));
-console.log("The string \"buzz\": " + toString(BUZZ));
-console.log("The string \"fizz\" + \"buzz\": " + toString(FIZZBUZZ));
+console.log("The string \"fizz\": " + extractString(FIZZ));
+console.log("The string \"buzz\": " + extractString(BUZZ));
+console.log("The string \"fizz\" + \"buzz\": " + extractString(FIZZBUZZ));
 
 // DIVIDE m n = floor(m / n); clamp divide-by-zero to 0
 let DIVIDE =
@@ -330,7 +330,7 @@ let DIGIT_TO_NUMERAL = NTH(DIGITS_NUMERAL);
 let NUMBER_TO_STRING =
   n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(DIGIT_TO_NUMERAL(d))(acc))(EMPTY);
 
-console.log("Seventy-eight as a string: " + toString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
+console.log("Seventy-eight as a string: " + extractString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
 
 let toLines = Y(go => formatter => lst =>
       IS_EMPTY(lst)
@@ -356,7 +356,7 @@ let OUTPUT = MAP(RANGE(ONE)(ONE_HUNDRED))(n => IF(
             (NUMBER_TO_STRING(n))
             ))))));
 
-console.log(toLines(toString)(OUTPUT));
+console.log(toLines(extractString)(OUTPUT));
 
 // Exercises for the reader
 // 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
