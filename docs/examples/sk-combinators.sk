@@ -172,11 +172,17 @@ let EMPTY = K(TRUE);           // An empty list, as in [], also used to denote t
 let END = EMPTY;               // Interchangeable with EMPTY, whichever is more readable
 let IS_EMPTY = T(K(K(FALSE))); // let IS_EMPTY = list => list(x => y => FALSE);
 
-// let RANGE = Y(f => m => n =>
-//   LESS_THAN_OR_EQUAL(m)(n)
-//     (CONS(m)(f(SUCC(m))(n)))
-//     (EMPTY)
-// );
+// 0-based
+let NTH = Y(f => lst => n =>
+  IS_ZERO(n)
+    (FIRST(lst))
+    (f(REST(lst))(PRED(n))));
+
+//let RANGE = Y(f => m => n =>
+//  LESS_THAN_OR_EQUAL(m)(n)
+//    (CONS(m)(f(SUCC(m))(n)))
+//    (EMPTY)
+//);
 let RANGE = Y(C(B(C)(B(B(C))(B(S(B(S)(LESS_THAN_OR_EQUAL)))(B(S(B(B)(CONS)))(C(B)(SUCC))))))(EMPTY));
 
 // let FOLD = Y(f => lst => fn => acc =>
@@ -202,37 +208,24 @@ let commaSeparated = formatter => lst =>
 let extractArray = formatter => list => "[" + (commaSeparated)(formatter)(list) + "]";
 
 console.log("\nLists:");
-console.log("1, 2, 3: " + extractArray(extractNumber)(
-  CONS(ONE)
-  (CONS(TWO)(CONS(THREE)(EMPTY)))));
+console.log("[1, 2, 3]: " + extractArray(extractNumber)(CONS(ONE)(CONS(TWO)(CONS(THREE)(END)))));
+console.log("First element in [1, 2]: " + extractNumber(
+  NTH(CONS(ONE)(CONS(TWO)(END)))(ZERO)
+));
 console.log("1..10: " + extractArray(extractNumber)(RANGE(ONE)(TEN)));
 console.log("Sum 1..4 = " + extractNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
 console.log("Increment 1..3 = " + extractArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 
-// More ergonomic than `CONS("a")(CONS("b")(CONS("c"))...`
-let ARRAY =
-  (Y(h => acc => x =>
-    x === EMPTY
-      ? acc(EMPTY)                      // finalize with EMPTY
-      : h(t => acc(CONS(x)(t)))))       // keep composing CONS(x)
-  (t => t);                         // start with identity builder
+// strings
 
-let LETTERS =
-  ARRAY
-  ("a")("b")("c")("d")("e")("f")("g")("h")("i")("j")
-  ("k")("l")("m")("n")("o")("p")("q")("r")("s")("t")
-  ("u")("v")("w")("x")("y")("z")
-  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9")(END);
-
-let NTH = Y(f => n => lst =>
-  IS_ZERO(n)
-    (FIRST(lst))
-    (f(PRED(n))(REST(lst))));
-
-let toString = Y(f => lst =>
-  IS_EMPTY(lst)
-    ("")
-    (NTH(PRED(FIRST(lst)))(LETTERS) + f(REST(lst))));
+// let ARRAY = Y(h => cont => x =>
+//   IS_EMPTY(x)
+//     (cont(END))                         // finish: run the continuation on END
+//     (h(y => cont(CONS(x)(y))))          // keep chaining: prepend x later
+// (I);
+// Usage: `ARRAY(ONE)(TWO)(THREE)(END)`
+// More ergonomic than `CONS(ONE)(CONS(TWO)(CONS(THREE)(CONS(END))))`
+let ARRAY = Y(B(S(B(S)(C(B(C(IS_EMPTY)))(END))))(C(B(B)(B))(C(B(B)(B))(CONS))))(I);
 
 let CHAR_A  = ONE;
 let CHAR_B  = TWO;
@@ -271,16 +264,38 @@ let CHAR_7 = DECIMAL2(THREE)(FOUR);
 let CHAR_8 = DECIMAL2(THREE)(FIVE);
 let CHAR_9 = DECIMAL2(THREE)(SIX);
 
-let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
-let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
-let FIZZBUZZ = CONCAT(FIZZ)(BUZZ);
-
 // combine two lists
 let CONCAT =
   Y(f => xs => ys =>
     IS_EMPTY(xs)
       (ys)
       (CONS(FIRST(xs))(f(REST(xs))(ys))));
+
+let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
+let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
+let FIZZBUZZ = CONCAT(FIZZ)(BUZZ);
+
+// String utility functions
+// (only used for printing to the console)
+let array =
+  (Y(h => acc => x =>
+    x === END
+      ? acc(END)
+      : h(t => acc(CONS(x)(t)))))
+  (I);
+
+let letters =
+  array
+  ("a")("b")("c")("d")("e")("f")("g")("h")("i")("j")
+  ("k")("l")("m")("n")("o")("p")("q")("r")("s")("t")
+  ("u")("v")("w")("x")("y")("z")
+  ("0")("1")("2")("3")("4")("5")("6")("7")("8")("9")(END);
+
+let toString = Y(f => lst =>
+  IS_EMPTY(lst)
+    ("")
+    (NTH(letters)(PRED(FIRST(lst))) + f(REST(lst)))
+);
 
 console.log("\nStrings:");
 console.log("The string \"fizz\": " + toString(FIZZ));
@@ -306,18 +321,12 @@ let DIGITS_NUMERAL =
   CONS(CHAR_0)(CONS(CHAR_1)(CONS(CHAR_2)(CONS(CHAR_3)(CONS(CHAR_4)(
   CONS(CHAR_5)(CONS(CHAR_6)(CONS(CHAR_7)(CONS(CHAR_8)(CONS(CHAR_9)(EMPTY))))))))));
 
-// TODO - derive from nth
-let NTH0 = Y(f => n => lst =>
-  IS_ZERO(n)
-    (FIRST(lst))
-    (f(PRED(n))(REST(lst))));
-
 let NUMBER_TO_DIGIT_LIST = Y(rec => n =>
   IS_ZERO(DIVIDE(n)(TEN))
     (CONS(MOD(n)(TEN))(EMPTY))
     (CONCAT(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
 
-let DIGIT_TO_NUMERAL = d => NTH0(d)(DIGITS_NUMERAL);
+let DIGIT_TO_NUMERAL = d => NTH(DIGITS_NUMERAL)(d);
 
 let NUMBER_TO_STRING =
   n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(DIGIT_TO_NUMERAL(d))(acc))(EMPTY);

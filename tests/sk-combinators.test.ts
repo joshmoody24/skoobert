@@ -208,7 +208,11 @@ describe("SK Combinators - Complete Test Suite", () => {
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
-        value: "1, 2, 3: [1, 2, 3]",
+        value: "[1, 2, 3]: [1, 2, 3]",
+      });
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
+        value: "First element in [1, 2]: 1",
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
