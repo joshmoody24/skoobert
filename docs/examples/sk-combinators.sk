@@ -186,9 +186,8 @@ let RANGE = Y(C(B(C)(B(B(C))(B(S(B(S)(LESS_THAN_OR_EQUAL)))(B(S(B(B)(CONS)))(C(B
 // );
 let FOLD = Y(B(S(B(B)(B(S)(IS_EMPTY))))(B(S(B(S)(C(B(B(B))(C(B)(FIRST))))))(C(B)(REST))));
 
-// right fold: combiner :: element -> acc -> acc
-let MAP = list => f =>
-  FOLD(list)(x => acc => CONS(f(x))(acc))(EMPTY);
+// let MAP = lst => f => FOLD(lst)(x => acc => CONS(f(x))(acc))(EMPTY);
+let MAP = C(B(C)(C(B(B)(FOLD))(B(CONS))))(EMPTY);
 
 let toArray = formatter => list =>
   "[" + (
