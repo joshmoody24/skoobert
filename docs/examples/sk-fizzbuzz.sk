@@ -21,7 +21,7 @@ let ZERO = I;
 let IS_ZERO = T(TRUE);
 let SUCC = V(FALSE);
 let PRED = T(FALSE);
-let DECREMENT = m => IS_ZERO(m)(m)(PRED(m));
+let DECREMENT = S(W(IS_ZERO))(PRED);
 
 let ONE   = SUCC(ZERO);
 let TWO   = SUCC(ONE);

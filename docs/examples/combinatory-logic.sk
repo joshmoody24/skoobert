@@ -45,7 +45,7 @@ let ZERO = I;
 let IS_ZERO = T(TRUE);      // IS_ZERO n = n TRUE
 let SUCC = V(FALSE);        // SUCC n = V FALSE n
 let PRED = T(FALSE);        // PRED n = n FALSE
-let DECREMENT = m => IS_ZERO(m)(m)(PRED(m)); // Clamped version of PRED
+let DECREMENT = S(W(IS_ZERO))(PRED); // Clamped version of PRED
 
 // Build some numbers
 let ONE   = SUCC(ZERO);
