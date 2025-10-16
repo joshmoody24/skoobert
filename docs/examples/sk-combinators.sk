@@ -21,7 +21,6 @@ let R = B(B)(T);             // Robin:        x => y => z => y(z)(x)            
 let Y = W(C)(S(B)(C(W(C)))); // Y Combinator: x => (y => x(y(y)))(y => x(y(y)));  - recursion (see also LxLx, UU, and many other equivalents)
 let B1 = B(B)(B);            // Blackbird:    x => y => z => w => x(y(b)(w))
 let E = B(B1);               // Eagle:        x => y => z => w => v => x(y)(z(w(v)))
-let R_STAR = C_STAR(C_STAR); // Robin once removed:     x => y => z => w => x(z)(w)(y)          - AKA R*
 let C_STAR = B(C);           // Cardinal once removed:  x => y => z => w => x(y)(w)(z)          - AKA C*
 let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v => x(y)(z)(v)(w)  - AKA C**
 
@@ -60,11 +59,9 @@ let EIGHT = SUCC(SEVEN);
 let NINE  = SUCC(EIGHT);
 let TEN   = SUCC(NINE);
 
-let nativeIncrement = x => x + 1; // only used for printing to console
-
 // Convert Barendregt/Scott numeral to native number
 // let extractNumber = m => IS_ZERO(m)(0)(1 + toNumber(PRED(m)));
-let extractNumber = Y(B(S(C(IS_ZERO)(0)))(B(B(nativeIncrement))(C(B)(PRED))));
+let extractNumber = Y(B(S(C(IS_ZERO)(0)))(B(B(x => x + 1))(C(B)(PRED))));
 
 console.log("\nBarendregt/Scott numerals:");
 console.log("One: " + extractNumber(ZERO));     // 0
@@ -122,9 +119,9 @@ let LESS_THAN_OR_EQUAL = B1(IS_ZERO)(SUBTRACT);
 let GREATER_THAN_OR_EQUAL = C(LESS_THAN_OR_EQUAL);
 
 console.log("\nLess than or equal:");
-console.log("3 <= 2 = " + extractBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // true
-console.log("4 <= 5 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
-console.log("0 <= 0 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // false
+console.log("3 <= 2 = " + extractBoolean(LESS_THAN_OR_EQUAL(THREE)(TWO)));  // false
+console.log("4 <= 5 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // true
+console.log("0 <= 0 = " + extractBoolean(LESS_THAN_OR_EQUAL(FOUR)(FIVE)));  // true
 
 let INVERT_BINARY_RELATION = B1(NOT);
 let GREATER_THAN = INVERT_BINARY_RELATION(LESS_THAN_OR_EQUAL);
@@ -226,25 +223,26 @@ let MAP = C(B(C)(C(B(B)(FOLD))(B(CONS))))(EMPTY);
 
 // Not going to bother making this point-free,
 // since it's just for printing to the console.
-let commaSeparated = formatter => lst =>
-      IS_EMPTY(lst)
+let renderList = fmt => sep => xs =>
+  IS_EMPTY(xs)
+    ("")
+    (fmt(FIRST(xs)) +
+      (IS_EMPTY(REST(xs))
         ("")
-        (formatter(FIRST(lst)) +
-          (IS_EMPTY(REST(lst))
-            ("")
-            (", " + commaSeparated(formatter)(REST(lst)))));
+        (sep + renderList(fmt)(sep)(REST(xs)))));
 
-let extractArray = formatter => list => "[" + (commaSeparated)(formatter)(list) + "]";
+let showArray = fmt => list => "[" + renderList(fmt)(", ")(list) + "]";
+let showLines = fmt => list => renderList(fmt)("\n")(list);
 
 console.log("\nLists:");
-console.log("[1, 2, 3]: " + extractArray(extractNumber)(CONS(ONE)(CONS(TWO)(CONS(THREE)(END)))));
-console.log("[7, 8, 9] reversed: " + extractArray(extractNumber)(REVERSE(CONS(SEVEN)(CONS(EIGHT)(CONS(NINE)(END))))));
+console.log("[1, 2, 3]: " + showArray(extractNumber)(CONS(ONE)(CONS(TWO)(CONS(THREE)(END)))));
+console.log("[7, 8, 9] reversed: " + showArray(extractNumber)(REVERSE(CONS(SEVEN)(CONS(EIGHT)(CONS(NINE)(END))))));
 console.log("Second element in [1, 2]: " + extractNumber(
   NTH(CONS(ONE)(CONS(TWO)(END)))(ONE)
 ));
-console.log("1..10: " + extractArray(extractNumber)(RANGE(ONE)(TEN)));
+console.log("1..10: " + showArray(extractNumber)(RANGE(ONE)(TEN)));
 console.log("Sum 1..4 = " + extractNumber(FOLD(RANGE(ONE)(FOUR))(ADD)(ZERO)));
-console.log("Increment 1..3 = " + extractArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
+console.log("Increment 1..3 = " + showArray(extractNumber)(MAP(RANGE(ONE)(THREE))(SUCC)));
 
 // strings
 
@@ -345,16 +343,6 @@ let NUMBER_TO_STRING = S(C(B(FOLD)(NUMBER_TO_DIGIT_LIST))(B(CONS)(NTH(DIGITS_NUM
 
 console.log("Seventy-eight as a string: " + extractString(NUMBER_TO_STRING(DECIMAL2(SEVEN)(EIGHT))));
 
-// Converts a list to a string with one element per line
-// Only used for printing to the console
-let toLines = formatter => lst =>
-      IS_EMPTY(lst)
-        ("")
-        (formatter(FIRST(lst)) +
-          (IS_EMPTY(REST(lst))
-            ("")
-            ("\n" + toLines(formatter)(REST(lst)))));
-
 let FIFTEEN = DECIMAL2(ONE)(FIVE);
 
 console.log("\n=== THE GRAND FINALE ===");
@@ -375,8 +363,9 @@ let FIZZBUZZ_RESULT = MAP(RANGE(ONE)(ONE_HUNDRED))
       (NUMBER_TO_STRING))))
     (B(B(IS_ZERO))(MOD)));
 
-console.log(toLines(extractString)(FIZZBUZZ_RESULT));
-// Exercises for the reader
-// 1. In any programming language, write a function that, given a lambda calculus expression, automatically derives a correct SK combinatory logic expression.
-// 2. Convert the program into lambda calculus
-// 3. Run the program through itself
+console.log(showLines(extractString)(FIZZBUZZ_RESULT));
+
+// Exercises for the reader:
+// 1. Write a program in any language that automatically converts a lambda calculus expression into an equivalent combinatory logic expression.
+// 2. Convert the program into lambda calculus.
+// 3. Run the program through itself.
