@@ -332,10 +332,15 @@ let DIGITS_NUMERAL = ARRAY
 	(CHAR_6)(CHAR_7)(CHAR_8)
 	(CHAR_9)(END);
 
-let NUMBER_TO_DIGIT_LIST = Y(rec => n =>
-  IS_ZERO(DIVIDE(n)(TEN))
-    (CONS(MOD(n)(TEN))(EMPTY))
-    (CONCAT(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
+// let NUMBER_TO_DIGIT_LIST = n =>
+//   IS_ZERO(DIVIDE(n)(TEN))
+//     (CONS(MOD(n)(TEN))(EMPTY))
+//     (CONCAT(NUMBER_TO_DIGIT_LIST(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY)));
+// Notice the repeated forms `DIVIDE(n)(TEN)` and `(CONS(MOD(n)(TEN))(EMPTY))`.
+// Extracting them into variables may make derivation easier.
+let NUMBER_TO_DIGIT_LIST =
+  S(B(S(B(S)(IS_ZERO))
+    (B(CONCAT)(NUMBER_TO_DIGIT_LIST)))(C(DIVIDE)(TEN)))(C(B(CONS)(C(MOD)(TEN)))(EMPTY));
 
 let DIGIT_TO_NUMERAL = NTH(DIGITS_NUMERAL);
 
