@@ -172,17 +172,19 @@ let EMPTY = K(TRUE);           // An empty list, as in [], also used to denote t
 let END = EMPTY;               // Interchangeable with EMPTY, whichever is more readable
 let IS_EMPTY = T(K(K(FALSE))); // let IS_EMPTY = list => list(x => y => FALSE);
 
-let RANGE = Y(f => m => n =>
-  LESS_THAN_OR_EQUAL(m)(n)
-    (CONS(m)(f(SUCC(m))(n)))
-    (EMPTY)
-);
+// let RANGE = Y(f => m => n =>
+//   LESS_THAN_OR_EQUAL(m)(n)
+//     (CONS(m)(f(SUCC(m))(n)))
+//     (EMPTY)
+// );
+let RANGE = Y(C(B(C)(B(B(C))(B(S(B(S)(LESS_THAN_OR_EQUAL)))(B(S(B(B)(CONS)))(C(B)(SUCC))))))(EMPTY));
 
-let FOLD = Y(f => lst => fn => acc =>
-  IS_EMPTY(lst)
-    (acc)
-    (fn(FIRST(lst))(f(REST(lst))(fn)(acc)))
-);
+// let FOLD = Y(f => lst => fn => acc =>
+//   IS_EMPTY(lst)
+//     (acc)
+//     (fn(FIRST(lst))(f(REST(lst))(fn)(acc)))
+// );
+let FOLD = Y(B(S(B(B)(B(S)(IS_EMPTY))))(B(S(B(S)(C(B(B(B))(C(B)(FIRST))))))(C(B)(REST))));
 
 // right fold: combiner :: element -> acc -> acc
 let MAP = list => f =>
