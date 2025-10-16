@@ -212,6 +212,10 @@ describe("SK Combinators - Complete Test Suite", () => {
       });
       expect(calls[i++][0]).toEqual({
         type: ValueType.String,
+        value: "[7, 8, 9] reversed: [9, 8, 7]",
+      });
+      expect(calls[i++][0]).toEqual({
+        type: ValueType.String,
         value: "Second element in [1, 2]: 2",
       });
       expect(calls[i++][0]).toEqual({

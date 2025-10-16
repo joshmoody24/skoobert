@@ -179,6 +179,15 @@ let IS_EMPTY = T(K(K(FALSE))); // let IS_EMPTY = list => list(x => y => FALSE);
 //    (NTH(REST(lst))(PRED(n)));
 let NTH = Y(B(S(B(S)(B(C(IS_ZERO))(FIRST))))(C(B(C)(B(B(B))(C(B)(REST))))(PRED)));
 
+// let CONCAT = xs => ys => (FOLD(xs))(CONS)(ys);
+let CONCAT = B(T(CONS))(FOLD);
+
+// let REVERSE = xs =>
+//     IS_EMPTY(xs)
+//       (EMPTY)
+//       (CONCAT(REVERSE(REST(xs)))(CONS(FIRST(xs))(EMPTY)));
+let REVERSE = Y(B(S(C(IS_EMPTY)(EMPTY)))(C(B(S)(B(B(CONCAT))(C(B)(REST))))(C(B(CONS)(FIRST))(EMPTY))));
+
 //let RANGE = Y(f => m => n =>
 //  LESS_THAN_OR_EQUAL(m)(n)
 //    (CONS(m)(f(SUCC(m))(n)))
@@ -210,6 +219,7 @@ let extractArray = formatter => list => "[" + (commaSeparated)(formatter)(list) 
 
 console.log("\nLists:");
 console.log("[1, 2, 3]: " + extractArray(extractNumber)(CONS(ONE)(CONS(TWO)(CONS(THREE)(END)))));
+console.log("[7, 8, 9] reversed: " + extractArray(extractNumber)(REVERSE(CONS(SEVEN)(CONS(EIGHT)(CONS(NINE)(END))))));
 console.log("Second element in [1, 2]: " + extractNumber(
   NTH(CONS(ONE)(CONS(TWO)(END)))(ONE)
 ));
@@ -265,9 +275,6 @@ let CHAR_7 = DECIMAL2(THREE)(FOUR);
 let CHAR_8 = DECIMAL2(THREE)(FIVE);
 let CHAR_9 = DECIMAL2(THREE)(SIX);
 
-// let CONCAT = xs => ys => (FOLD(xs))(CONS)(ys);
-let CONCAT = B(T(CONS))(FOLD);
-
 let FIZZ = ARRAY(CHAR_F)(CHAR_I)(CHAR_Z)(CHAR_Z)(END);
 let BUZZ = ARRAY(CHAR_B)(CHAR_U)(CHAR_Z)(CHAR_Z)(END);
 let FIZZBUZZ = CONCAT(FIZZ)(BUZZ);
@@ -307,12 +314,6 @@ let DIVIDE =
       (LESS_THAN(m)(n)
         (ZERO)                                 // m < n  => 0
         (SUCC(f(SUBTRACT(m)(n))(n)))));        // else 1 + div(m-n, n)
-
-let REVERSE =
-  Y(f => xs =>
-    IS_EMPTY(xs)
-      (EMPTY)
-      (CONCAT(f(REST(xs)))(CONS(FIRST(xs))(EMPTY))));
 
 let DIGITS_NUMERAL = ARRAY
 	(CHAR_0)(CHAR_1)(CHAR_2)
