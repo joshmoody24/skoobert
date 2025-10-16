@@ -42,7 +42,7 @@ console.log("NOT false = " + extractBoolean(NOT(FALSE)));
 console.log("\nLazy evaluation test:");
 console.log(K(42)(M(M)) + " (this would throw an error in normal JavaScript)");  // Returns 42 without evaluating M(M)
 
-// Barendregt numerals
+// Barendregt/Scott numerals
 let ZERO = I;
 let IS_ZERO = T(TRUE);      // IS_ZERO n = n TRUE
 let SUCC = V(FALSE);        // SUCC n = V FALSE n
@@ -314,16 +314,18 @@ let REVERSE =
       (EMPTY)
       (CONCAT(f(REST(xs)))(CONS(FIRST(xs))(EMPTY))));
 
-let DIGITS_NUMERAL =
-  CONS(CHAR_0)(CONS(CHAR_1)(CONS(CHAR_2)(CONS(CHAR_3)(CONS(CHAR_4)(
-  CONS(CHAR_5)(CONS(CHAR_6)(CONS(CHAR_7)(CONS(CHAR_8)(CONS(CHAR_9)(EMPTY))))))))));
+let DIGITS_NUMERAL = ARRAY
+	(CHAR_0)(CHAR_1)(CHAR_2)
+	(CHAR_3)(CHAR_4)(CHAR_5)
+	(CHAR_6)(CHAR_7)(CHAR_8)
+	(CHAR_9)(END);
 
 let NUMBER_TO_DIGIT_LIST = Y(rec => n =>
   IS_ZERO(DIVIDE(n)(TEN))
     (CONS(MOD(n)(TEN))(EMPTY))
     (CONCAT(rec(DIVIDE(n)(TEN)))(CONS(MOD(n)(TEN))(EMPTY))));
 
-let DIGIT_TO_NUMERAL = d => NTH(DIGITS_NUMERAL)(d);
+let DIGIT_TO_NUMERAL = NTH(DIGITS_NUMERAL);
 
 let NUMBER_TO_STRING =
   n => FOLD(NUMBER_TO_DIGIT_LIST(n))(d => acc => CONS(DIGIT_TO_NUMERAL(d))(acc))(EMPTY);
