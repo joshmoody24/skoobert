@@ -28,7 +28,6 @@ let C_STAR_STAR = B(C_STAR); // Cardinal twice removed: x => y => z => w => v =>
 // Boolean logic
 let TRUE = K;      // given two things, choose the first
 let FALSE = K(I);  // given two things, choose the second
-let IF = I;
 
 let extractBoolean = V(true)(false); // helper function to make booleans human-readable
 
@@ -361,17 +360,23 @@ let FIFTEEN = DECIMAL2(ONE)(FIVE);
 console.log("\n=== THE GRAND FINALE ===");
 console.log("\nFizzBuzz:");
 
-let OUTPUT = MAP(RANGE(ONE)(ONE_HUNDRED))(n => IF(
-  IS_ZERO(MOD(n)(FIFTEEN))
-  	(FIZZBUZZ)
-  	(IF(IS_ZERO(MOD(n)(THREE))
-        (FIZZ)
-        (IF(IS_ZERO(MOD(n)(FIVE))
-            (BUZZ)
-            (NUMBER_TO_STRING(n))
-            ))))));
+// let FIZZBUZZ_RESULT = MAP(RANGE(ONE)(ONE_HUNDRED))(n =>
+//   IS_ZERO(MOD(n)(FIFTEEN))
+//   	 (FIZZBUZZ)
+//     (IS_ZERO(MOD(n)(THREE))
+//       (FIZZ)
+//       (IS_ZERO(MOD(n)(FIVE))
+//         (BUZZ)
+//         (NUMBER_TO_STRING(n)))));
+let FIZZBUZZ_RESULT = MAP(RANGE(ONE)(ONE_HUNDRED))
+(S(B(S(C(R(FIZZBUZZ))(FIFTEEN)))(
+  B(S(C(R(FIZZ))(THREE)))(
+    B(C(C(R(BUZZ))(FIVE)))
+      (NUMBER_TO_STRING))))
+    (B(B(IS_ZERO))(MOD)));
 
-console.log(toLines(extractString)(OUTPUT));
-
+console.log(toLines(extractString)(FIZZBUZZ_RESULT));
 // Exercises for the reader
-// 1. Write a function that, given a lambda calculus expression, automatically derives a correct SK combinator expression.
+// 1. In any programming language, write a function that, given a lambda calculus expression, automatically derives a correct SK combinatory logic expression.
+// 2. Convert the program into lambda calculus
+// 3. Run the program through itself
