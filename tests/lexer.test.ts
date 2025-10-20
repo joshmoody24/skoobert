@@ -29,6 +29,19 @@ describe("lexer - positive tests", () => {
     ]);
   });
 
+  it("should lex inspect.expanded", () => {
+    const tokens = lex('inspect.expanded(x);');
+    const tokenTypes = tokens.map((token) => token.type);
+    expect(tokenTypes).toEqual([
+      TokenType.InspectExpanded,
+      TokenType.LeftParen,
+      TokenType.Identifier,
+      TokenType.RightParen,
+      TokenType.Semicolon,
+      TokenType.Eof,
+    ]);
+  });
+
   it("should lex arrow function", () => {
     const tokens = lex("let fn = x => x + 1;");
     const tokenTypes = tokens.map((token) => token.type);

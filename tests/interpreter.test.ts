@@ -13,6 +13,58 @@ describe("interpreter - basic evaluation", () => {
     });
   });
 
+  it("should expand variables with inspect.expanded", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse(`
+      let x = 42;
+      let y = x + 1;
+      inspect.expanded(y);
+    `), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.String,
+      value: "42 + 1",
+    });
+  });
+
+  it("should expand nested variables with inspect.expanded", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse(`
+      let x = 5;
+      let y = x + 3;
+      let z = y * 2;
+      inspect.expanded(z);
+    `), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.String,
+      value: "(5 + 3) * 2",  // Need parens since y is expanded as an additive expression
+    });
+  });
+
+  it("should handle functions with inspect.expanded", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse(`
+      let f = x => x + 1;
+      inspect.expanded(f);
+    `), { onOutput: mockOutput });
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.String,
+      value: "x => x + 1",
+    });
+  });
+
+  it("should detect cycles with inspect.expanded", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(parse(`
+      let Y = f => (x => f(x(x)))(x => f(x(x)));
+      inspect.expanded(Y);
+    `), { onOutput: mockOutput });
+    // Should show cycle detection with ...Y...
+    expect(mockOutput).toHaveBeenCalled();
+    const callArg = mockOutput.mock.calls[0]?.[0];
+    expect(callArg?.type).toBe(ValueType.String);
+    expect(callArg?.value).toContain("f =>");
+  });
+
   it("should evaluate and print a simple string", () => {
     const mockOutput = vi.fn<[Value], void>();
     interpret(parse('console.log("hello");'), { onOutput: mockOutput });

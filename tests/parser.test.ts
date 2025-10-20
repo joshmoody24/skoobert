@@ -25,6 +25,28 @@ describe("parser - positive tests", () => {
     });
   });
 
+  it("should parse inspect.expanded statement", () => {
+    const result = parse("inspect.expanded(x);");
+    expect(result).toEqual({
+      type: "program",
+      statements: [
+        {
+          type: "statement",
+          body: {
+            type: "side-effect",
+            body: {
+              type: "inspect-expanded",
+              argument: {
+                type: "expression",
+                body: { type: "identifier", name: "x" },
+              },
+            },
+          },
+        },
+      ],
+    });
+  });
+
   it("should parse logical OR expression", () => {
     const result = parse("let result = true || false;");
     expect(result.statements[0]?.body).toMatchObject({

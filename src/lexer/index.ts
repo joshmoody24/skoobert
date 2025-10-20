@@ -144,6 +144,12 @@ function createLexer(input: string) {
         return true;
       }
 
+      if (match("inspect.expanded")) {
+        pushToken({ type: TokenType.InspectExpanded });
+        advanceBy(16);
+        return true;
+      }
+
       return false;
     },
 

@@ -18,6 +18,7 @@ export enum NodeType {
   FunctionCall = "function-call",
   SideEffect = "side-effect",
   ConsoleLog = "console-log",
+  InspectExpanded = "inspect-expanded",
   Number = "number",
   String = "string",
   Boolean = "boolean",
@@ -150,6 +151,14 @@ export type Identifier = {
   name: string;
 };
 
-export type SideEffect = { type: NodeType.SideEffect; body: ConsoleLog };
+export type SideEffect = {
+  type: NodeType.SideEffect;
+  body: ConsoleLog | InspectExpanded
+};
 
 export type ConsoleLog = { type: NodeType.ConsoleLog; argument: Expression };
+
+export type InspectExpanded = {
+  type: NodeType.InspectExpanded;
+  argument: Expression
+};

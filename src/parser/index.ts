@@ -7,6 +7,7 @@ import {
   type BooleanLiteral,
   type ConditionalExpression,
   type ConsoleLog,
+  type InspectExpanded,
   type EqualityExpression,
   type Expression,
   type Identifier,
@@ -155,7 +156,7 @@ export function createParser(tokens: Token[], source: string) {
   };
 
   const sideEffect = (): SideEffect => {
-    const body = consoleLog();
+    const body = sideEffectBody();
     if (!match(TokenType.Semicolon)) {
       throw createError("Expected ';'");
     }
@@ -163,6 +164,16 @@ export function createParser(tokens: Token[], source: string) {
       type: NodeType.SideEffect,
       body,
     };
+  };
+
+  const sideEffectBody = (): ConsoleLog | InspectExpanded => {
+    if (peek()?.type === TokenType.ConsoleLog) {
+      return consoleLog();
+    }
+    if (peek()?.type === TokenType.InspectExpanded) {
+      return inspectExpanded();
+    }
+    throw createError("Expected 'console.log' or 'inspect.expanded'");
   };
 
   const consoleLog = (): ConsoleLog => {
@@ -178,6 +189,23 @@ export function createParser(tokens: Token[], source: string) {
     }
     return {
       type: NodeType.ConsoleLog,
+      argument,
+    };
+  };
+
+  const inspectExpanded = (): InspectExpanded => {
+    if (!match(TokenType.InspectExpanded)) {
+      throw createError("Expected 'inspect.expanded'");
+    }
+    if (!match(TokenType.LeftParen)) {
+      throw createError("Expected '('");
+    }
+    const argument = expression();
+    if (!match(TokenType.RightParen)) {
+      throw createError("Expected ')'");
+    }
+    return {
+      type: NodeType.InspectExpanded,
       argument,
     };
   };

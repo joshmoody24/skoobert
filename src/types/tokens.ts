@@ -24,6 +24,7 @@ export enum TokenType {
   String = "string",
   Arrow = "=>",
   ConsoleLog = "console.log",
+  InspectExpanded = "inspect.expanded",
   Let = "let",
   True = "true",
   False = "false",
@@ -60,6 +61,7 @@ export type NumberToken = { type: TokenType.Number; value: number };
 export type StringToken = { type: TokenType.String; value: string };
 export type ArrowToken = { type: TokenType.Arrow };
 export type ConsoleLogToken = { type: TokenType.ConsoleLog };
+export type InspectExpandedToken = { type: TokenType.InspectExpanded };
 export type LetToken = { type: TokenType.Let };
 export type TrueToken = { type: TokenType.True };
 export type FalseToken = { type: TokenType.False };
@@ -91,6 +93,7 @@ export type DiscriminatedToken =
   | StringToken
   | ArrowToken
   | ConsoleLogToken
+  | InspectExpandedToken
   | LetToken
   | TrueToken
   | FalseToken
