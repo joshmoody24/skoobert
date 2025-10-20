@@ -99,6 +99,52 @@
         color: #50fa7b;
       }
 
+      .loading-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #8be9fd;
+        font-style: italic;
+      }
+
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid #8be9fd;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .control-buttons {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .stop-button {
+        background-color: #ff5555;
+        color: white;
+        border: none;
+        padding: 0.25rem 1rem;
+        border-radius: var(--pico-border-radius);
+        cursor: pointer;
+        font-size: 0.875rem;
+        display: none;
+      }
+
+      .stop-button.active {
+        display: block;
+      }
+
+      .stop-button:hover {
+        background-color: #ff6666;
+      }
+
       .title-row {
         display: flex;
         align-items: center;
@@ -145,7 +191,12 @@
       </div>
 
       <div class="panel">
-        <div class="panel-header">Output</div>
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Output</span>
+          <div class="control-buttons">
+            <button id="stopButton" class="stop-button">Stop</button>
+          </div>
+        </div>
         <div id="output"></div>
       </div>
     </div>
@@ -156,7 +207,6 @@
 
     <!-- Load Skoobert bundle -->
     <script type="module">
-      import { parse, interpret } from "./skoobert.bundle.js";
 
       // Initialize CodeMirror
       const editor = CodeMirror.fromTextArea(
@@ -197,6 +247,84 @@
 
       const output = document.getElementById("output");
       const exampleSelector = document.getElementById("exampleSelector");
+      const stopButton = document.getElementById("stopButton");
+
+      // Initialize worker
+      let worker = null;
+      let currentExecutionId = 0;
+      let isExecuting = false;
+
+      function createWorker() {
+        if (worker) {
+          worker.terminate();
+        }
+        worker = new Worker("./skoobert.worker.js", { type: "module" });
+
+        worker.addEventListener("message", (event) => {
+          const { id, type, value, error, outputs } = event.data;
+
+          // Ignore messages from old executions
+          if (id !== currentExecutionId) return;
+
+          switch (type) {
+            case "output":
+              const line = document.createElement("div");
+              line.className = "output-line output-log";
+              line.textContent = value;
+              output.appendChild(line);
+              break;
+
+            case "complete":
+              isExecuting = false;
+              stopButton.classList.remove("active");
+
+              // Remove loading indicator if present
+              const loadingIndicator = output.querySelector(".loading-indicator");
+              if (loadingIndicator) {
+                loadingIndicator.remove();
+              }
+
+              if (outputs && outputs.length === 0 && output.children.length === 0) {
+                const line = document.createElement("div");
+                line.className = "output-line";
+                line.style.color = "#6272a4";
+                line.textContent = "(No output)";
+                output.appendChild(line);
+              }
+              break;
+
+            case "error":
+              isExecuting = false;
+              stopButton.classList.remove("active");
+
+              // Remove loading indicator if present
+              const loadingInd = output.querySelector(".loading-indicator");
+              if (loadingInd) {
+                loadingInd.remove();
+              }
+
+              const errorLine = document.createElement("div");
+              errorLine.className = "output-line output-error";
+              errorLine.textContent = error;
+              output.appendChild(errorLine);
+              break;
+          }
+        });
+
+        worker.addEventListener("error", (error) => {
+          console.error("Worker error:", error);
+          isExecuting = false;
+          stopButton.classList.remove("active");
+
+          const errorLine = document.createElement("div");
+          errorLine.className = "output-line output-error";
+          errorLine.textContent = "Worker error: " + error.message;
+          output.appendChild(errorLine);
+        });
+      }
+
+      // Create initial worker
+      createWorker();
 
       // Debounced run function
       let runTimeout;
@@ -207,62 +335,50 @@
 
       function runCode() {
         const code = editor.getValue();
+
+        // Cancel any existing execution silently if still running
+        if (isExecuting) {
+          currentExecutionId++;
+          createWorker();
+        }
+
+        // Clear output
         output.innerHTML = "";
 
-        try {
-          const ast = parse(code);
-          interpret(ast, {
-            onOutput: (value) => {
-              const line = document.createElement("div");
-              line.className = "output-line output-log";
+        // Show loading indicator
+        const loadingDiv = document.createElement("div");
+        loadingDiv.className = "loading-indicator";
+        loadingDiv.innerHTML = '<div class="spinner"></div><span>Running...</span>';
+        output.appendChild(loadingDiv);
 
-              // Format output based on type
-              let text;
-              switch (value.type) {
-                case "number":
-                  text = String(value.value);
-                  break;
-                case "string":
-                  text = value.value;
-                  break;
-                case "boolean":
-                  text = String(value.value);
-                  break;
-                case "function":
-                  text = "[Function]";
-                  break;
-                default:
-                  text = JSON.stringify(value);
-              }
+        // Start new execution
+        isExecuting = true;
+        currentExecutionId++;
+        stopButton.classList.add("active");
 
-              line.textContent = text;
-              output.appendChild(line);
-            },
-          });
+        // Send code to worker
+        worker.postMessage({
+          code: code,
+          id: currentExecutionId
+        });
+      }
 
-          if (output.children.length === 0) {
-            const line = document.createElement("div");
-            line.className = "output-line";
-            line.style.color = "#6272a4";
-            line.textContent = "(No output)";
-            output.appendChild(line);
-          }
-        } catch (error) {
-          const line = document.createElement("div");
-          line.className = "output-line output-error";
+      function stopExecution() {
+        if (!isExecuting) return;
 
-          if (
-            error.name === "ParseError" ||
-            error.name === "LexError" ||
-            error.name === "RuntimeError"
-          ) {
-            line.textContent = error.toString();
-          } else {
-            line.textContent = "Error: " + error.message;
-          }
+        isExecuting = false;
+        stopButton.classList.remove("active");
+        currentExecutionId++;
 
-          output.appendChild(line);
-        }
+        // Terminate and recreate worker
+        createWorker();
+
+        // Clear output and show stopped message
+        output.innerHTML = '';
+        const line = document.createElement("div");
+        line.className = "output-line output-error";
+        line.textContent = "Execution stopped";
+        output.appendChild(line);
       }
 
       // Load example files
@@ -296,6 +412,7 @@
       exampleSelector.addEventListener("change", (e) =>
         loadExample(e.target.value)
       );
+      stopButton.addEventListener("click", stopExecution);
 
       // Load initial example on page load
       loadInitialExample();
