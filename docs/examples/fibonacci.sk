@@ -1,5 +1,4 @@
-// Fibonacci sequence using recursion
-// Note: Due to lazy evaluation, large values are efficient
+// Fibonacci sequence using normal recursion
 
 let fib = n =>
   n <= 1
@@ -18,3 +17,17 @@ console.log(fib(7));  // 13
 console.log(fib(8));  // 21
 console.log(fib(9));  // 34
 console.log(fib(10)); // 55
+
+// Fibonacci sequence using Y combinator
+
+let Y = f => (x => f(v => x(x)(v)))
+             (x => f(v => x(x)(v)));
+
+let fib = Y(f => n =>
+  n <= 1
+    ? n
+    : f(n - 1) + f(n - 2)
+);
+
+console.log(fib(11)); // 89
+console.log(fib(12)); // 144

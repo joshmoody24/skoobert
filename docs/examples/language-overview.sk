@@ -7,80 +7,95 @@
 // === BASIC TYPES ===
 
 // Numbers
+console.log("Numbers:");
 console.log(42);
 console.log(3.14159);
 console.log(10 + 20 * 2);  // 50 - standard precedence
 
 // Strings
+console.log("\nStrings:");
 console.log("Hello, Skoobert!");
 console.log("String " + "concatenation");
 
 // Booleans
+console.log("\nBooleans:");
 console.log(true);
 console.log(false);
 console.log(5 > 3);  // true
 
 // === VARIABLES ===
-// Variables are immutable - once set, they cannot be changed
 
+console.log("\nVariables:");
 let x = 10;
 let y = 20;
 console.log(x + y);  // 30
 
+// Variables are immutable - once set, they cannot be changed
 // let x = 15;  // ERROR: Cannot redeclare 'x'
 // x = 15;      // ERROR: Cannot reassign variables
 
 // === FUNCTIONS ===
+console.log("\nFunctions:");
 // Functions are first-class values
 
 // Simple function
 let double = n => n * 2;
 console.log(double(21));  // 42
 
-// Functions can return functions (currying)
+// Functions have exactly one parameter,
+// but you can simulate having multiple parameters
+// by returning another function (currying)
 let add = x => y => x + y;
-let add5 = add(5);
-console.log(add5(10));  // 15
+console.log(add(5)(10));  // 15
 
 // Higher-order functions
 let twice = f => x => f(f(x));
 let quadruple = twice(double);
 console.log(quadruple(10));  // 40
 
-// === LAZY EVALUATION ===
-// This is where Skoobert differs from JavaScript!
-
-// This would crash JavaScript, but not Skoobert
-let dangerous = 1 / 0;  // Never evaluated
-let safe = 42;
-console.log(safe);  // 42 - dangerous is never used
-
 // Short-circuit evaluation
 console.log(true || 1 / 0);   // true - second part never evaluated
 console.log(false && 1 / 0);  // false - second part never evaluated
 
 // Conditional expressions (ternary)
-let result = true ? "Success" : 1 / 0;
-console.log(result);  // "Success" - error branch never evaluated
+let result = true ? "Success" : "Failure";
+console.log(result);  // "Success"
 
-// === FUNCTION COMPOSITION ===
-
-let compose = f => g => x => f(g(x));
-let shout = text => text + "!!!";
-let greet = name => "Hello, " + name;
-let excitedGreeting = compose(shout)(greet);
-
-console.log(excitedGreeting("World"));  // Hello, World!!!
-
-// === RECURSION ===
-// Functions can call themselves
-
+// Recursion: functions can call themselves
 let factorial = n => n <= 1 ? 1 : n * factorial(n - 1);
 console.log(factorial(5));  // 120
+
+// === LAZY EVALUATION ===
+// This is where Skoobert differs from JavaScript!
+
+console.log("\nLazy evaluation:");
 
 // Lazy evaluation makes infinite recursion safe when not used
 let loop = x => loop(x);  // Infinite loop
 let first = a => b => a;
 console.log(first(100)(loop(0)));  // 100 - loop never executes
 
-console.log("=== End of tour! Try editing the code above ===");
+// The Y combinator is a way to do recursion
+// without a function explicitly referring to itself.
+// Normally, the Y combinator crashes in JavaScript,
+// because it's an eagerly evaluated language.
+// This requires an extra wrapper called the Z combinator,
+// but this is not necessary in Skoobert!
+// The Y combinator works out of the box.
+let Y = f => (x => f(v => x(x)(v)))
+             (x => f(v => x(x)(v)));
+let fib = Y(f => n =>
+  n <= 1
+    ? n
+    : f(n - 1) + f(n - 2)
+);
+console.log("\nFibonacci:");
+console.log(fib(0));  // 0
+console.log(fib(1));  // 1
+console.log(fib(2));  // 1
+console.log(fib(3));  // 2
+console.log(fib(4));  // 3
+console.log(fib(5));  // 5
+console.log(fib(6));  // 8
+
+console.log("\n=== End of tour! Try editing the code above ===");
