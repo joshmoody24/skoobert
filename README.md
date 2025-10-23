@@ -33,14 +33,20 @@ interpret(ast, {
 ## Lazy Evaluation Examples
 
 ```javascript
-// This won't cause division by zero because x is never used
-let x = 1 / 0;
-let y = 42;
-console.log(y); // ✅ Outputs: 42
+// Infinite recursion is safe when not used
+let loop = (x) => loop(x);
+let first = (a) => (b) => a;
+console.log(first(100)(loop(0))); // ✅ Outputs: 100 (loop never executes)
 
-// Functions receive lazy arguments
-let f = (x) => 42;
-console.log(f(1 / 0)); // ✅ Outputs: 42 (argument never evaluated)
+// The Y combinator works directly without needing a wrapper!
+// (This crashes in regular JavaScript due to eager evaluation)
+let Y = (f) => ((x) => f((v) => x(x)(v)))
+               ((x) => f((v) => x(x)(v)));
+
+let factorial = Y((f) => (n) =>
+  n <= 1 ? 1 : n * f(n - 1)
+);
+console.log(factorial(5)); // ✅ Outputs: 120
 ```
 
 ## Language Syntax
