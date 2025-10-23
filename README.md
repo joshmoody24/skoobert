@@ -13,7 +13,9 @@ A **lazy subset of JavaScript** - expressions are only evaluated when their valu
 
 ## Installation
 
-(TODO: Publish to npm)
+`npm install skoobert`
+
+[skoobert npm Package](https://www.npmjs.com/package/skoobert)
 
 ## Usage
 
@@ -40,12 +42,9 @@ console.log(first(100)(loop(0))); // ✅ Outputs: 100 (loop never executes)
 
 // The Y combinator works directly without needing a wrapper!
 // (This crashes in regular JavaScript due to eager evaluation)
-let Y = (f) => ((x) => f((v) => x(x)(v)))
-               ((x) => f((v) => x(x)(v)));
+let Y = (f) => ((x) => f((v) => x(x)(v)))((x) => f((v) => x(x)(v)));
 
-let factorial = Y((f) => (n) =>
-  n <= 1 ? 1 : n * f(n - 1)
-);
+let factorial = Y((f) => (n) => (n <= 1 ? 1 : n * f(n - 1)));
 console.log(factorial(5)); // ✅ Outputs: 120
 ```
 
