@@ -144,7 +144,7 @@ console.log("0 > 0 = " + extractBoolean(GREATER_THAN(FOUR)(FIVE)));  // false
 // let MOD_MAKER = B(S(B(S)(W(C_STAR(LESS_THAN)))))(B(B(W))(C(B(B)(B))(SUBTRACT)));
 // let MOD = Y(MOD_MAKER);
 
-// RECURSE_SUB is a common piece of logic shared by DIVIDE, there it is extracted into its own variable.
+// RECURSE_SUB is a common piece of logic shared by MOD and DIVIDE, therefore it is extracted into its own variable.
 // This was discovered after deriving both of them from scratch.
 // There is probably some deep elegance here that is lost on me.
 let RECURSE_SUB = B(B(W))(C(B(B)(B))(SUBTRACT));
