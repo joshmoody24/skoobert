@@ -244,4 +244,19 @@ describe("interpreter - lazy evaluation", () => {
       value: 42,
     });
   });
+
+  it("should not overflow the stack on deep tail recursion", () => {
+    const mockOutput = vi.fn<[Value], void>();
+    interpret(
+      parse(`
+      let loop = n => n === 0 ? "done" : loop(n - 1);
+      console.log(loop(100000));
+    `),
+      { onOutput: mockOutput }
+    );
+    expect(mockOutput).toHaveBeenCalledWith({
+      type: ValueType.String,
+      value: "done",
+    });
+  });
 });
