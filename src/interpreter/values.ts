@@ -44,38 +44,48 @@ export type ThunkValue = {
   memoized?: Value;
 };
 
-export type Environment = {
+// Function scopes hold exactly one parameter, but the global scope is
+// extended in place by later `let`s that earlier closures must still see.
+export type Environment = GlobalEnvironment | LocalEnvironment;
+
+export type GlobalEnvironment = {
   bindings: Map<string, Value>;
-  parent?: Environment;
 };
 
-export function createEnvironment(parent?: Environment): Environment {
-  return {
-    bindings: new Map(),
-    parent,
-  };
+export type LocalEnvironment = {
+  name: string;
+  value: Value;
+  parent: Environment;
+};
+
+export function createGlobalEnvironment(): GlobalEnvironment {
+  return { bindings: new Map() };
+}
+
+export function extendEnvironment(
+  parent: Environment,
+  name: string,
+  value: Value
+): LocalEnvironment {
+  return { name, value, parent };
+}
+
+export function bindGlobal(
+  env: GlobalEnvironment,
+  name: string,
+  value: Value
+): void {
+  env.bindings.set(name, value);
 }
 
 export function lookupVariable(
   env: Environment,
   name: string
 ): Value | undefined {
-  const value = env.bindings.get(name);
-  if (value !== undefined) {
-    return value;
+  if ("bindings" in env) {
+    return env.bindings.get(name);
   }
-  if (env.parent) {
-    return lookupVariable(env.parent, name);
-  }
-  return undefined;
-}
-
-export function bindVariable(
-  env: Environment,
-  name: string,
-  value: Value
-): void {
-  env.bindings.set(name, value);
+  return env.name === name ? env.value : lookupVariable(env.parent, name);
 }
 
 export function isThunk(value: Value): value is ThunkValue {

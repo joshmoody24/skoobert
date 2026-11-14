@@ -18,8 +18,7 @@ import {
   type Environment,
   lookupVariable,
   createThunk,
-  createEnvironment,
-  bindVariable,
+  extendEnvironment,
 } from "./values.js";
 import { force } from "./force.js";
 
@@ -253,10 +252,10 @@ function evaluatePrimary(expr: PrimaryExpression, env: Environment): Value {
       }
 
       const argThunk = createThunk(expr.argument, env);
-      const newEnv = createEnvironment(func.closure);
-      bindVariable(newEnv, func.parameter, argThunk);
-
-      return createThunk(func.body, newEnv);
+      return createThunk(
+        func.body,
+        extendEnvironment(func.closure, func.parameter, argThunk)
+      );
     }
 
     case NodeType.ParenthesizedExpression:
