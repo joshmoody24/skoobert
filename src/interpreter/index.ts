@@ -8,8 +8,9 @@ import {
   ValueType,
   type Value,
   type Environment,
-  createEnvironment,
-  bindVariable,
+  type GlobalEnvironment,
+  createGlobalEnvironment,
+  bindGlobal,
   lookupVariable,
   createThunk,
 } from "./values.js";
@@ -28,7 +29,7 @@ export function interpret(
   program: Program,
   options: InterpreterOptions = {}
 ): void {
-  const globalEnv = createEnvironment();
+  const globalEnv = createGlobalEnvironment();
   const outputHandler =
     options.onOutput ?? ((value) => console.log(valueToString(value)));
   evaluateProgram(program, globalEnv, outputHandler);
@@ -36,7 +37,7 @@ export function interpret(
 
 function evaluateProgram(
   program: Program,
-  env: Environment,
+  env: GlobalEnvironment,
   outputHandler: OutputHandler
 ): void {
   for (const statement of program.statements) {
@@ -46,7 +47,7 @@ function evaluateProgram(
 
 function evaluateStatement(
   statement: Statement,
-  env: Environment,
+  env: GlobalEnvironment,
   outputHandler: OutputHandler
 ): void {
   switch (statement.body.type) {
@@ -59,7 +60,7 @@ function evaluateStatement(
         );
       }
       const thunk = createThunk(expression, env);
-      bindVariable(env, identifier.name, thunk);
+      bindGlobal(env, identifier.name, thunk);
       break;
     }
     case NodeType.SideEffect: {
